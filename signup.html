@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - Medinsight AI</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@200..800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<header>
+    <img class="logo" src="assets/medinsight ai logo nobg 1.png" alt="Medinsight AI Logo">
+</header>
+
+<section class="auth-section">
+    <div class="auth-container">
+        <h2 class="auth-title">Sign up</h2>
+        
+        <form class="auth-form" id="signupForm">
+            <input type="text" placeholder="Enter full name" required>
+            <input type="email" placeholder="Enter email" required>
+            <input type="tel" placeholder="Enter phone number" required>
+            <input type="text" placeholder="Enter username" required>
+            <input type="password" placeholder="Enter password" required>
+            
+            <label class="checkbox-label">
+                <input type="checkbox" id="terms-box" required>
+                I agree to the <a href="terms.html">Terms & Conditions</a> and understand that this application does not provide medical diagnosis or treatment.
+            </label>
+            
+            <button type="submit" class="auth-submit-btn">Sign up</button>
+        </form>
+        
+        <p class="auth-switch">Already have an account? <a href="login.html">Login</a></p>
+    </div>
+</section>
+
+<footer>
+    <div class="page-links">
+        <a href="about_us.html">About us</a>
+        <a href="ethics.html">Ethical and Medical Disclaimer</a>
+        <a href="terms.html">Terms and Conditions</a>
+        <a href="contact.html">Contact / Support</a>
+    </div>
+    <p class="copyright">
+        2026 Health Companion | Academic Mini Project<br>
+        Built for educational and research purposes only
+    </p>
+</footer>
+
+<script>
+document.getElementById('signupForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    // Backend integration point
+    window.location.href = 'login.html';
+});
+</script>
+
+</body>
+</html>

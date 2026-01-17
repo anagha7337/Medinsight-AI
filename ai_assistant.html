@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Health Query Assistant - Medinsight AI</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@200..800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<header>
+    <img class="logo" src="assets/medinsight ai logo nobg 1.png" alt="Medinsight AI Logo">
+    <div class="profile-wrapper">
+        <img class="dp" src="assets/account 1.png" alt="Profile" id="profileBtn">
+        <div class="profile-popup" id="profilePopup">
+            <p class="profile-name">Anagha</p>
+            <p class="profile-username">@anagha_k</p>
+            <button class="add-patient-btn">Add Patient</button>
+        </div>
+    </div>
+</header>
+
+<section class="chat-section">
+    <h1 class="page-title">AI Health Query Assistant</h1>
+    <p class="page-subtitle">Ask health questions and get clear, non-diagnostic answers instantly</p>
+    
+    <div class="chat-container">
+        <div class="chat-messages" id="chatMessages">
+            <div class="chat-placeholder">
+                <p>Ask a health question to understand reports, tests, or symptoms</p>
+            </div>
+        </div>
+        
+        <div class="chat-input-wrapper">
+            <input type="text" class="chat-input" id="chatInput" placeholder="Ask anything">
+            <button class="chat-send-btn" id="sendBtn">Send</button>
+        </div>
+    </div>
+</section>
+
+<footer>
+    <div class="page-links">
+        <a href="about_us.html">About us</a>
+        <a href="ethics.html">Ethical and Medical Disclaimer</a>
+        <a href="terms.html">Terms and Conditions</a>
+        <a href="contact.html">Contact / Support</a>
+    </div>
+    <p class="copyright">
+        2026 Health Companion | Academic Mini Project<br>
+        Built for educational and research purposes only
+    </p>
+</footer>
+
+<script>
+const profileBtn = document.getElementById("profileBtn");
+const profilePopup = document.getElementById("profilePopup");
+
+profileBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    profilePopup.classList.toggle("show");
+});
+
+document.addEventListener("click", () => {
+    profilePopup.classList.remove("show");
+});
+
+document.getElementById('sendBtn').addEventListener('click', sendMessage);
+document.getElementById('chatInput').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') sendMessage();
+});
+
+function sendMessage() {
+    const input = document.getElementById('chatInput');
+    const message = input.value.trim();
+    
+    if (message) {
+        const chatMessages = document.getElementById('chatMessages');
+        chatMessages.querySelector('.chat-placeholder')?.remove();
+        
+        const userMsg = document.createElement('div');
+        userMsg.className = 'chat-message user';
+        userMsg.textContent = message;
+        chatMessages.appendChild(userMsg);
+        
+        input.value = '';
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        
+        // Backend integration point for AI response
+        setTimeout(() => {
+            const aiMsg = document.createElement('div');
+            aiMsg.className = 'chat-message ai';
+            aiMsg.textContent = 'AI response will appear here (backend integration needed)';
+            chatMessages.appendChild(aiMsg);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }, 1000);
+    }
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Medinsight AI</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@200..800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<header>
+    <img class="logo" src="assets/medinsight ai logo nobg 1.png" alt="Medinsight AI Logo">
+</header>
+
+<section class="auth-section">
+    <div class="auth-container">
+        <h2 class="auth-title">Login</h2>
+        
+        <form class="auth-form" id="loginForm">
+            <input type="text" id="login-user" placeholder="Enter username" required>
+            <input type="password" id="login-pass" placeholder="Enter password" required>
+            
+            <p class="error-msg" id="login-error" style="display: none;">Invalid credentials</p>
+            
+            <button type="submit" class="auth-submit-btn">Login</button>
+        </form>
+        
+        <p class="auth-switch">Don't have an account? <a href="signup.html">Sign up</a></p>
+    </div>
+</section>
+
+<footer>
+    <div class="page-links">
+        <a href="about_us.html">About us</a>
+        <a href="ethics.html">Ethical and Medical Disclaimer</a>
+        <a href="terms.html">Terms and Conditions</a>
+        <a href="contact.html">Contact / Support</a>
+    </div>
+    <p class="copyright">
+        2026 Health Companion | Academic Mini Project<br>
+        Built for educational and research purposes only
+    </p>
+</footer>
+
+<script>
+document.getElementById('loginForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const user = document.getElementById('login-user').value;
+    const pass = document.getElementById('login-pass').value;
+    const errorMsg = document.getElementById('login-error');
+    
+    // Backend integration point
+    if (user && pass) {
+        window.location.href = 'landingpage.html';
+    } else {
+        errorMsg.style.display = 'block';
+    }
+});
+</script>
+
+</body>
+</html>
