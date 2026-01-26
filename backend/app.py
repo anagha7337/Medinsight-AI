@@ -26,17 +26,31 @@ def medicine_lookup():
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
 
-    query = """
-        SELECT 
-            base_name,
-            uses,
-            how_it_works,
-            common_side_effects,
-            serious_side_effects
-        FROM medicine_lookup_final_then
-        WHERE base_name LIKE %s
-        LIMIT 1
-    """
+    query = query = query = """
+SELECT
+    l.base_name,
+
+    MAX(l.uses) AS uses,
+    MAX(l.how_it_works) AS how_it_works,
+    MAX(l.common_side_effects) AS common_side_effects,
+    MAX(l.serious_side_effects) AS serious_side_effects,
+
+    GROUP_CONCAT(DISTINCT dp.ingredient_name SEPARATOR ' + ') AS composition
+
+FROM medicine_lookup_final_then l
+JOIN medicines m
+    ON m.medicine_name = l.base_name
+JOIN medicine_drug_map mdm
+    ON mdm.medicine_id = m.medicine_id
+JOIN drug_profiles dp
+    ON dp.drug_id = mdm.drug_id
+
+WHERE l.base_name LIKE %s
+GROUP BY l.base_name
+LIMIT 1;
+"""
+
+
 
     cursor.execute(query, (f"%{name}%",))
     row = cursor.fetchone()
@@ -49,14 +63,15 @@ def medicine_lookup():
 
     # ---------- FORMAT FOR FRONTEND ----------
     response = {
-        "name": row["base_name"].title(),
-        "category": "Medicine",  # optional, static for now
-        "composition": "See chemical composition in report",
-        "uses": row["uses"].split("; "),
-        "action": row["how_it_works"],
-        "common": row["common_side_effects"].split(", "),
-        "serious": row["serious_side_effects"].split(", ")
-    }
+    "name": row["base_name"],
+    "category": "Medicine",
+    "composition": row["composition"] if row["composition"] else "Not available",
+    "uses": row["uses"].split("; ") if row["uses"] else [],
+    "action": row["how_it_works"] if row["how_it_works"] else "",
+    "common": row["common_side_effects"].split(", ") if row["common_side_effects"] else [],
+    "serious": row["serious_side_effects"].split(", ") if row["serious_side_effects"] else []
+}
+
 
     return jsonify(response)
 
