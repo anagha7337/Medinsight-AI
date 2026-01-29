@@ -12,28 +12,21 @@
 
 <header>
     <img class="logo" src="assets/medinsight ai logo nobg 1.png" alt="Medinsight AI Logo">
-    <div class="profile-wrapper">
-        <img class="dp" src="assets/account 1.png" alt="Profile" id="profileBtn">
-        <div class="profile-popup" id="profilePopup">
-            <p class="profile-name">Anagha</p>
-            <p class="profile-username">@anagha_k</p>
-            <button class="add-patient-btn">Add Patient</button>
-        </div>
-    </div>
 </header>
 
 <section class="analyzer-section">
     <h1 class="page-title">Medical Report Analyzer</h1>
     <p class="page-subtitle">Turn complex medical reports into simple, understandable insights.</p>
-    
+
     <div class="analyzer-container">
-        <div class="upload-area" id="uploadArea">
-            <img src="assets/medical_report_icon.png" alt="" class="upload-icon">
-            <p class="upload-text">Upload medical report in jpg, jpeg or pdf format here</p>
+
+        <!-- Upload -->
+        <div class="upload-area" onclick="document.getElementById('reportFile').click()">
+            <img src="assets/medical_report_icon.png" class="upload-icon">
+            <p class="upload-text">Upload medical report (jpg / pdf)</p>
             <input type="file" id="reportFile" accept=".jpg,.jpeg,.pdf" hidden>
-            <button class="upload-btn" onclick="document.getElementById('reportFile').click()">Upload</button>
         </div>
-        
+
         <div class="form-row">
             <select class="form-select">
                 <option value="">Select Language</option>
@@ -53,40 +46,133 @@
             <input type="checkbox">
             I agree that this report may be used for trend tracking and health history analysis.
         </label>
+
+        <div class="upload-btn-row">
+            <button class="upload-btn" id="uploadBtn" disabled>Upload</button>
+        </div>
+
+        <!-- RESULTS -->
+        <div class="result-box" id="resultBox" style="display:none;">
+
+            <h3>Abnormal Findings</h3>
+            <div id="abnormalList"></div>
+
+            <h3 style="margin-top:20px;">What does this mean?</h3>
+            <p id="aiExplanation" class="ai-explanation"></p>
+
+        </div>
+
     </div>
 </section>
 
 <footer>
-    <div class="page-links">
-        <a href="about_us.html">About us</a>
-        <a href="ethics.html">Ethical and Medical Disclaimer</a>
-        <a href="terms.html">Terms and Conditions</a>
-        <a href="contact.html">Contact / Support</a>
-    </div>
     <p class="copyright">
-        2026 Health Companion | Academic Mini Project<br>
         Built for educational and research purposes only
     </p>
 </footer>
 
 <script>
-const profileBtn = document.getElementById("profileBtn");
-const profilePopup = document.getElementById("profilePopup");
+let selectedFile = null;
 
-profileBtn.addEventListener("click", (e) => {
-    e.stopPropagation();
-    profilePopup.classList.toggle("show");
+const fileInput = document.getElementById("reportFile");
+const uploadBtn = document.getElementById("uploadBtn");
+const uploadText = document.querySelector(".upload-text");
+
+fileInput.addEventListener("change", () => {
+    selectedFile = fileInput.files[0];
+    uploadText.textContent = "Selected: " + selectedFile.name;
+    uploadBtn.disabled = false;
 });
 
-document.addEventListener("click", () => {
-    profilePopup.classList.remove("show");
-});
+uploadBtn.addEventListener("click", async () => {
+    if (!selectedFile) return;
 
-document.getElementById('reportFile').addEventListener('change', function(e) {
-    if (e.target.files.length > 0) {
-        document.querySelector('.upload-text').textContent = 'File: ' + e.target.files[0].name;
+    uploadText.textContent = "Analyzing...";
+    uploadBtn.disabled = true;
+
+    const resultBox = document.getElementById("resultBox");
+    const abnormalList = document.getElementById("abnormalList");
+    const aiExplanation = document.getElementById("aiExplanation");
+
+    try {
+        const formData = new FormData();
+        formData.append("file", selectedFile);
+
+        const response = await fetch("http://127.0.0.1:5000/upload-report", {
+            method: "POST",
+            body: formData
+        });
+
+        if (!response.ok) {
+            throw new Error("Server error");
+        }
+
+        const result = await response.json();
+
+        resultBox.style.display = "block";
+        abnormalList.innerHTML = "";
+        aiExplanation.textContent = "";
+
+        const abnormalValues = result.abnormal_values || {};
+
+        // ✅ Case: No abnormalities
+        if (Object.keys(abnormalValues).length === 0) {
+            abnormalList.innerHTML =
+                "<p>All values are within the normal range 🎉</p>";
+            aiExplanation.textContent =
+                "No follow-up action required at this time.";
+            return;
+        }
+
+        // ✅ Render abnormal values
+        for (const test in abnormalValues) {
+            const item = abnormalValues[test];
+
+            const div = document.createElement("div");
+            div.className = "abnormal-item";
+            div.innerHTML = `
+                <strong>${test}</strong><br>
+                Value: ${item.value}<br>
+                Status: <span class="${item.status.toLowerCase()}">${item.status}</span><br>
+                Normal Range: ${item.normal_range}
+            `;
+
+            abnormalList.appendChild(div);
+        }
+
+        // ✅ Combine AI explanations
+        let combinedExplanation = "";
+        let modelWarming = false;
+
+        for (const test in abnormalValues) {
+            const explanation = abnormalValues[test].explanation || "";
+
+            if (explanation.toLowerCase().includes("warming up")) {
+                modelWarming = true;
+            }
+
+            combinedExplanation += `• ${test}: ${explanation}\n\n`;
+        }
+
+        if (modelWarming) {
+            combinedExplanation +=
+                "\n⏳ AI model is waking up. Please click Upload again in about a minute for detailed explanations.";
+        }
+
+        aiExplanation.textContent = combinedExplanation.trim();
+
+    } catch (error) {
+        console.error(error);
+        alert("Something went wrong while analyzing the report. Please try again.");
+    } finally {
+        // 🔥 ALWAYS reset UI
+        uploadBtn.disabled = false;
+        uploadText.textContent = "Upload medical report (jpg / pdf)";
+        selectedFile = null;
+        fileInput.value = "";
     }
 });
+
 </script>
 
 </body>
