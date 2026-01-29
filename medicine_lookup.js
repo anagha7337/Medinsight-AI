@@ -13,18 +13,21 @@ async function fetchMedicine(name) {
 
 function showMessage(msg) {
     const resultsBox = document.getElementById("medicineResults");
+
+    // Show container
     resultsBox.style.display = "block";
 
-    // Hide content but keep structure
-    resultsBox.querySelector(".medicine-name").innerText = "";
+    // Set title as message
+    resultsBox.querySelector(".medicine-name").innerText = msg;
     resultsBox.querySelector(".medicine-category").innerText = "";
 
-    const infoBlocks = resultsBox.querySelectorAll(".info-block p");
-    infoBlocks.forEach(p => p.innerText = "");
-
-    // Show message in first block
-    infoBlocks[0].innerText = msg;
+    // Hide all info blocks
+    const infoBlocks = resultsBox.querySelectorAll(".info-block");
+    infoBlocks.forEach(block => {
+        block.style.display = "none";
+    });
 }
+
 
 
 function renderMedicine(data) {
@@ -32,12 +35,14 @@ function renderMedicine(data) {
 
     const nameEl = resultsBox.querySelector(".medicine-name");
     const categoryEl = resultsBox.querySelector(".medicine-category");
-    const infoBlocks = resultsBox.querySelectorAll(".info-block p");
 
-    if (!nameEl || infoBlocks.length < 5) {
-        console.error("Medicine result structure missing in HTML");
-        return;
-    }
+    // Re-show info blocks
+    const infoContainers = resultsBox.querySelectorAll(".info-block");
+    infoContainers.forEach(block => {
+        block.style.display = "block";
+    });
+
+    const infoBlocks = resultsBox.querySelectorAll(".info-block p");
 
     nameEl.innerText = data.name;
     categoryEl.innerText = data.category;
@@ -50,6 +55,7 @@ function renderMedicine(data) {
 
     resultsBox.style.display = "block";
 }
+
 
 
 document.addEventListener("DOMContentLoaded", () => {
