@@ -26,7 +26,7 @@ def medicine_lookup():
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
 
-    query = query = query = """
+    query = """
 SELECT
     l.base_name,
 

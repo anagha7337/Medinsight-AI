@@ -57,20 +57,26 @@ document.addEventListener("DOMContentLoaded", () => {
     const btn = document.querySelector(".search-btn");
 
     async function search() {
-        const value = input.value.trim();
-        if (!value) return;
+    const value = input.value.trim();
+    if (!value) return;
 
-        showMessage("Searching medicine…");
+    showMessage("Searching medicine…");
 
+    try {
         const data = await fetchMedicine(value);
 
-        if (!data) {
+        if (!data || data.error) {
             showMessage("Medicine not found.");
             return;
         }
 
         renderMedicine(data);
+    } catch (err) {
+        console.error(err);
+        showMessage("Server error. Please try again.");
     }
+}
+
 
     btn.addEventListener("click", search);
     input.addEventListener("keydown", e => {

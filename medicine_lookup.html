@@ -96,14 +96,6 @@ profileBtn.addEventListener("click", (e) => {
 document.addEventListener("click", () => {
     profilePopup.classList.remove("show");
 });
-
-document.querySelector('.search-btn').addEventListener('click', function() {
-    const searchValue = document.getElementById('medicineSearch').value;
-    if (searchValue) {
-        document.getElementById('medicineResults').style.display = 'block';
-        // Backend integration point for actual search
-    }
-});
 </script>
 <script src="medicine_lookup.js"></script>
 
