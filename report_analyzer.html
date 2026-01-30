@@ -7,6 +7,98 @@
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@200..800&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Additional styles for better presentation */
+        .abnormal-item {
+            background: #f8f9fa;
+            border-left: 4px solid #dc3545;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        
+        .abnormal-item.low {
+            border-left-color: #0dcaf0;
+        }
+        
+        .abnormal-item.high {
+            border-left-color: #dc3545;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .status-badge.low {
+            background: #cff4fc;
+            color: #055160;
+        }
+        
+        .status-badge.high {
+            background: #f8d7da;
+            color: #842029;
+        }
+        
+        .ai-explanation {
+            background: #e7f3ff;
+            border-left: 4px solid #0066cc;
+            padding: 20px;
+            border-radius: 5px;
+            line-height: 1.8;
+            margin-top: 15px;
+            white-space: pre-wrap;
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #0066cc;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .success-message {
+            background: #d1e7dd;
+            color: #0f5132;
+            border: 1px solid #badbcc;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            text-align: center;
+        }
+        
+        .test-value {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .test-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: #0066cc;
+            margin-bottom: 8px;
+        }
+        
+        .normal-range {
+            color: #666;
+            font-size: 14px;
+        }
+    </style>
 </head>
 <body>
 
@@ -20,9 +112,9 @@
 
     <div class="analyzer-container">
 
-        <!-- Upload -->
+        <!-- Upload Area -->
         <div class="upload-area" onclick="document.getElementById('reportFile').click()">
-            <img src="assets/medical_report_icon.png" class="upload-icon">
+            <img src="assets/medical_report_icon.png" class="upload-icon" alt="Upload icon">
             <p class="upload-text">Upload medical report (jpg / pdf)</p>
             <input type="file" id="reportFile" accept=".jpg,.jpeg,.pdf" hidden>
         </div>
@@ -48,17 +140,17 @@
         </label>
 
         <div class="upload-btn-row">
-            <button class="upload-btn" id="uploadBtn" disabled>Upload</button>
+            <button class="upload-btn" id="uploadBtn" disabled>Upload & Analyze</button>
         </div>
 
-        <!-- RESULTS -->
+        <!-- RESULTS SECTION -->
         <div class="result-box" id="resultBox" style="display:none;">
 
-            <h3>Abnormal Findings</h3>
+            <h3>📋 Your Test Results</h3>
             <div id="abnormalList"></div>
 
-            <h3 style="margin-top:20px;">What does this mean?</h3>
-            <p id="aiExplanation" class="ai-explanation"></p>
+            <h3 style="margin-top:30px;">💡 What This Means For You</h3>
+            <div id="aiExplanation"></div>
 
         </div>
 
@@ -67,7 +159,7 @@
 
 <footer>
     <p class="copyright">
-        Built for educational and research purposes only
+        2026 Medinsight AI | Built for educational and research purposes only
     </p>
 </footer>
 
@@ -78,17 +170,24 @@ const fileInput = document.getElementById("reportFile");
 const uploadBtn = document.getElementById("uploadBtn");
 const uploadText = document.querySelector(".upload-text");
 
+// File selection handler
 fileInput.addEventListener("change", () => {
     selectedFile = fileInput.files[0];
-    uploadText.textContent = "Selected: " + selectedFile.name;
-    uploadBtn.disabled = false;
+    if (selectedFile) {
+        uploadText.textContent = "✓ Selected: " + selectedFile.name;
+        uploadBtn.disabled = false;
+    }
 });
 
+// Upload and analyze handler
 uploadBtn.addEventListener("click", async () => {
     if (!selectedFile) return;
 
-    uploadText.textContent = "Analyzing...";
+    // Show loading state
+    const originalText = uploadText.textContent;
+    uploadText.innerHTML = '<span class="loading-spinner"></span>Analyzing your report...';
     uploadBtn.disabled = true;
+    uploadBtn.textContent = "Analyzing...";
 
     const resultBox = document.getElementById("resultBox");
     const abnormalList = document.getElementById("abnormalList");
@@ -104,70 +203,79 @@ uploadBtn.addEventListener("click", async () => {
         });
 
         if (!response.ok) {
-            throw new Error("Server error");
+            throw new Error("Server error. Please try again.");
         }
 
         const result = await response.json();
 
+        // Show results
         resultBox.style.display = "block";
         abnormalList.innerHTML = "";
-        aiExplanation.textContent = "";
+        aiExplanation.innerHTML = "";
 
         const abnormalValues = result.abnormal_values || {};
 
-        // ✅ Case: No abnormalities
+        // ✅ Case 1: No abnormalities found
         if (Object.keys(abnormalValues).length === 0) {
-            abnormalList.innerHTML =
-                "<p>All values are within the normal range 🎉</p>";
-            aiExplanation.textContent =
-                "No follow-up action required at this time.";
+            abnormalList.innerHTML = `
+                <div class="success-message">
+                    <h3>🎉 Great News!</h3>
+                    <p>All your test values are within the normal range.</p>
+                    <p style="margin-top: 10px; font-size: 14px;">No follow-up action required at this time.</p>
+                </div>
+            `;
+            uploadText.textContent = "✓ Analysis complete - All normal!";
             return;
         }
 
-        // ✅ Render abnormal values
+        // ✅ Case 2: Abnormalities found
+        uploadText.textContent = `✓ Analysis complete - ${Object.keys(abnormalValues).length} value(s) need attention`;
+
+        // Render each abnormal value
         for (const test in abnormalValues) {
             const item = abnormalValues[test];
+            const statusClass = item.status.toLowerCase();
 
             const div = document.createElement("div");
-            div.className = "abnormal-item";
+            div.className = `abnormal-item ${statusClass}`;
             div.innerHTML = `
-                <strong>${test}</strong><br>
-                Value: ${item.value}<br>
-                Status: <span class="${item.status.toLowerCase()}">${item.status}</span><br>
-                Normal Range: ${item.normal_range}
+                <div class="test-name">${test}</div>
+                <div class="test-value">Your Value: ${item.value}</div>
+                <div class="normal-range">Normal Range: ${item.normal_range}</div>
+                <span class="status-badge ${statusClass}">${item.status}</span>
             `;
 
             abnormalList.appendChild(div);
         }
 
-        // ✅ Combine AI explanations
-        let combinedExplanation = "";
-        let modelWarming = false;
-
+        // Render AI explanations
         for (const test in abnormalValues) {
-            const explanation = abnormalValues[test].explanation || "";
+            const item = abnormalValues[test];
+            const explanation = item.explanation || "Explanation not available.";
 
-            if (explanation.toLowerCase().includes("warming up")) {
-                modelWarming = true;
-            }
+            const explainDiv = document.createElement("div");
+            explainDiv.className = "ai-explanation";
+            explainDiv.innerHTML = `
+                <strong>📊 ${test}:</strong><br><br>
+                ${explanation}
+            `;
 
-            combinedExplanation += `• ${test}: ${explanation}\n\n`;
+            aiExplanation.appendChild(explainDiv);
         }
 
-        if (modelWarming) {
-            combinedExplanation +=
-                "\n⏳ AI model is waking up. Please click Upload again in about a minute for detailed explanations.";
-        }
-
-        aiExplanation.textContent = combinedExplanation.trim();
+        // Scroll to results
+        resultBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
     } catch (error) {
-        console.error(error);
-        alert("Something went wrong while analyzing the report. Please try again.");
+        console.error("Error:", error);
+        alert("⚠️ Something went wrong while analyzing the report. Please try again.");
+        uploadText.textContent = "❌ Analysis failed - Please try again";
     } finally {
-        // 🔥 ALWAYS reset UI
+        // Reset button
         uploadBtn.disabled = false;
-        uploadText.textContent = "Upload medical report (jpg / pdf)";
+        uploadBtn.textContent = "Upload & Analyze";
+        
+        // Reset file input for next upload
         selectedFile = null;
         fileInput.value = "";
     }

@@ -13,6 +13,7 @@ CORS(app)
 UPLOAD_FOLDER = "uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
+
 @app.route("/upload-report", methods=["POST"])
 def upload_report():
 
@@ -27,30 +28,65 @@ def upload_report():
     file_path = os.path.join(UPLOAD_FOLDER, file.filename)
     file.save(file_path)
 
-    # 1️⃣ OCR
-    extracted_text = extract_text(file_path)
+    try:
+        # 1️⃣ OCR - Extract text from report
+        print("\n🔍 Step 1: Extracting text from report...")
+        extracted_text = extract_text(file_path)
 
-    # 2️⃣ Parse report
-    parsed_values = parse_report(extracted_text)
+        # 2️⃣ Parse report - Find test values
+        print("\n📊 Step 2: Parsing test values...")
+        parsed_values = parse_report(extracted_text)
 
-    # 3️⃣ Detect abnormal values
-    abnormal_values = check_abnormal_values(parsed_values)
+        # 3️⃣ Detect abnormal values
+        print("\n⚠️ Step 3: Checking for abnormal values...")
+        abnormal_values = check_abnormal_values(parsed_values)
 
-    # 4️⃣ AI interpretation
-    for test_name, details in abnormal_values.items():
-        details["explanation"] = interpret_abnormality(
-            test_name=test_name,
-            value=details.get("value"),
-            normal_range=details.get("normal_range"),
-            status=details.get("status")
-        )
+        # 4️⃣ AI interpretation for each abnormal value
+        print("\n🤖 Step 4: Generating AI explanations...")
+        for test_name, details in abnormal_values.items():
+            print(f"   → Generating explanation for {test_name}...")
+            
+            explanation = interpret_abnormality(
+                test_name=test_name,
+                value=details.get("value"),
+                normal_range=details.get("normal_range"),
+                status=details.get("status")
+            )
+            
+            details["explanation"] = explanation
+            print(f"   ✅ Explanation generated for {test_name}")
 
+        print("\n✨ Analysis complete!\n")
+
+        return jsonify({
+            "message": "Report analyzed successfully",
+            "filename": file.filename,
+            "abnormal_values": abnormal_values
+        })
+
+    except Exception as e:
+        print(f"\n❌ Error during analysis: {str(e)}\n")
+        return jsonify({
+            "error": "Failed to analyze report",
+            "details": str(e)
+        }), 500
+
+
+@app.route("/health", methods=["GET"])
+def health_check():
+    """Simple health check endpoint"""
     return jsonify({
-        "message": "Report analyzed successfully",
-        "filename": file.filename,
-        "abnormal_values": abnormal_values
+        "status": "healthy",
+        "service": "Medical Report Analyzer API"
     })
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    print("\n" + "="*50)
+    print("🏥 Medical Report Analyzer - Backend Server")
+    print("="*50)
+    print("Server starting on http://127.0.0.1:5000")
+    print("Press CTRL+C to stop")
+    print("="*50 + "\n")
+    
+    app.run(debug=True, host="127.0.0.1", port=5000)
