@@ -31,15 +31,47 @@ def build_prompt(test_name, value, normal_range, status, language="english"):
     language_instructions = {
         "english": """Please explain in simple, friendly English language.""",
         
-        "hindi": """Please explain in simple Hindi (Devanagari script). 
-Keep medical/technical terms in English but explain everything else in easy-to-understand Hindi.
+        "hindi": """Please provide TWO versions of the explanation:
+
+**Version 1 - Native Script (हिंदी):**
+Write the FULL explanation in Devanagari (Hindi) script. Keep medical terms in English but write everything else in proper Hindi.
+Example: "आपका hemoglobin level (12.5) सामान्य से कम है। Hemoglobin आपके खून में oxygen ले जाता है..."
+
+**Version 2 - Transliteration (Hinglish):**
+Write the same explanation using Latin script (Roman Hindi) - how Indians type Hindi in English.
 Example: "Aapka hemoglobin level (12.5) normal se kam hai. Hemoglobin aapke khoon mein oxygen carry karta hai..."
-Write naturally mixing Hindi and English terms as Indians normally speak.""",
+
+Format your response exactly like this:
+【हिंदी】
+[Your Hindi script explanation here]
+
+【Transliteration】
+[Your Hinglish explanation here]""",
         
-        "malayalam": """Please explain in simple Malayalam script.
-Keep medical/technical terms in English but explain everything else in easy-to-understand Malayalam.
-Example: "Ningalude hemoglobin level (12.5) normal range-il ninnum kuravanu. Hemoglobin ningalude blood-il oxygen carry cheyyunnu..."
-Write naturally mixing Malayalam and English terms as Keralites normally speak."""
+        "malayalam": """Please provide TWO versions of the explanation:
+
+**Version 1 - Native Script (മലയാളം):**
+Write the FULL explanation in Malayalam script. Keep medical terms in English but write everything else in proper Malayalam.
+Example: "നിങ്ങളുടെ hemoglobin level (12.5) സാധാരണ പരിധിയില്‍ നിന്ന് കുറവാണ്. Hemoglobin നിങ്ങളുടെ blood-ല്‍ oxygen കൊണ്ടുപോകുന്നു..."
+
+**Version 2 - Transliteration (Manglish):**
+Write the same explanation using ONLY Latin/English script - exactly how Malayalis type Malayalam using English keyboard.
+Use simple English letters only. No special Unicode characters.
+Example: "Ningalude hemoglobin level (12.5) normal range-il ninnu kuravanu. Hemoglobin ningalude blood-il oxygen carry cheyyunnu..."
+
+IMPORTANT for Transliteration:
+- Use only a-z, A-Z letters
+- Replace ള with 'la' or 'l' 
+- Replace ു with 'u'
+- Replace ് with '' (remove it or use simple letter)
+- Write naturally as Keralites type in WhatsApp/SMS
+
+Format your response exactly like this:
+【മലയാളം】
+[Your Malayalam script explanation here]
+
+【Transliteration】
+[Your pure English-letter Manglish explanation here]"""
     }
     
     lang_instruction = language_instructions.get(language.lower(), language_instructions["english"])
@@ -69,8 +101,6 @@ Important guidelines:
 - Don't diagnose specific diseases
 - Keep it concise (4-5 sentences total)
 - Focus on education, not fear
-
-Example English tone: "Your hemoglobin is a bit low, which means your blood isn't carrying as much oxygen as usual. This is often caused by not getting enough iron in your diet, like from leafy greens or red meat. You might feel a little tired or weak. It's a good idea to chat with your doctor about an iron supplement or dietary changes."
 """
 
 def interpret_abnormality(test_name, value, normal_range, status, language="english"):
@@ -94,7 +124,7 @@ def interpret_abnormality(test_name, value, normal_range, status, language="engl
             messages=[
                 {
                     "role": "system",
-                    "content": f"You are a compassionate medical assistant who explains lab results in simple, non-technical language. You educate without alarming people. Respond in {language} language as instructed."
+                    "content": f"You are a compassionate medical assistant who explains lab results in simple, non-technical language. You educate without alarming people. Respond in {language} language as instructed, providing both native script and transliteration for Hindi and Malayalam."
                 },
                 {
                     "role": "user",
@@ -103,7 +133,7 @@ def interpret_abnormality(test_name, value, normal_range, status, language="engl
             ],
             model="llama-3.3-70b-versatile",  # Latest fast and accurate model
             temperature=0.3,  # Lower temperature for more consistent medical advice
-            max_tokens=400,  # Increased for non-English scripts
+            max_tokens=600,  # Increased for dual format
             top_p=0.9
         )
         
@@ -156,38 +186,78 @@ def get_fallback_explanation(test_name, value, normal_range, status, language="e
         },
         "hindi": {
             "Hemoglobin": {
-                "LOW": f"Aapka hemoglobin level ({value}) normal se kam hai. Hemoglobin aapke khoon mein oxygen carry karta hai. Yeh zyada tar iron ki kami ya heavy periods ke karan hota hai. Aapko thakaan aur kamzori mehsoos ho sakti hai. Doctor se iron supplements ke baare mein baat karein.",
-                "HIGH": f"Aapka hemoglobin level ({value}) normal se zyada hai. Yeh high altitude, dehydration, ya smoking se ho sakta hai. Zyada chinta ki baat nahi hai, lekin apne doctor ko zaroor bataiye."
+                "LOW": f"""【हिंदी】
+आपका hemoglobin level ({value}) सामान्य से कम है। Hemoglobin आपके खून में oxygen पहुँचाता है। यह ज़्यादातर खाने में iron की कमी या ज़्यादा periods के कारण होता है। आपको थकान और कमज़ोरी महसूस हो सकती है। Doctor से iron supplements के बारे में बात करें।
+
+【Transliteration】
+Aapka hemoglobin level ({value}) normal se kam hai. Hemoglobin aapke khoon mein oxygen carry karta hai. Yeh zyada tar iron ki kami ya heavy periods ke karan hota hai. Aapko thakaan aur kamzori mehsoos ho sakti hai. Doctor se iron supplements ke baare mein baat karein.""",
+                "HIGH": f"""【हिंदी】
+आपका hemoglobin level ({value}) सामान्य से ज़्यादा है। यह ऊँचाई पर, dehydration, या smoking से हो सकता है। ज़्यादा चिंता की बात नहीं है, लेकिन अपने doctor को ज़रूर बताइए।
+
+【Transliteration】
+Aapka hemoglobin level ({value}) normal se zyada hai. Yeh high altitude, dehydration, ya smoking se ho sakta hai. Zyada chinta ki baat nahi hai, lekin apne doctor ko zaroor bataiye."""
             },
             "WBC": {
-                "LOW": f"Aapka white blood cell count ({value}) normal se kam hai. Yeh cells infections se ladti hain. Low count kuch medicines ya viral infections ke karan ho sakta hai. Safai ka khaas dhyan rakhein aur bimar logon se door rahein. Doctor se consult karein.",
-                "HIGH": f"Aapka white blood cell count ({value}) badha hua hai. Iska matlab hai ki aapka body kisi infection ya inflammation se lad raha hai. Yeh aksar temporary hota hai. Doctor ko dikhana chahiye."
-            },
-            "Platelets": {
-                "LOW": f"Aapka platelet count ({value}) normal se kam hai. Platelets blood clotting mein madad karte hain. Low count se bruising ya bleeding badh sakti hai. Contact sports avoid karein aur daant saaf karte waqt gentle rahein. Jaldi doctor se milein.",
-                "HIGH": f"Aapka platelet count ({value}) badha hua hai. Yeh exercise, stress, ya inflammation ke karan ho sakta hai. Zyada serious nahi hai, lekin doctor se discuss zaroor karein."
-            },
-            "Blood Sugar": {
-                "LOW": f"Aapka blood sugar ({value}) normal se kam hai. Isse kaanpna, pasina, ya confusion ho sakta hai. Yeh khana skip karne ya zyada insulin lene se ho sakta hai. Carbs aur protein wala snack lein. Agar yeh baar baar ho, to doctor se milein.",
-                "HIGH": f"Aapka blood sugar ({value}) normal se zyada hai. Yeh prediabetes ya diabetes indicate kar sakta hai. High sugar diet, stress, ya exercise ki kami se hota hai. Doctor diet changes ya diabetes testing recommend kar sakte hain."
+                "LOW": f"""【हिंदी】
+आपका white blood cell count ({value}) सामान्य से कम है। ये cells infections से लड़ती हैं। कम count कुछ medicines या viral infections के कारण हो सकता है। सफ़ाई का ख़ास ध्यान रखें और बीमार लोगों से दूर रहें। Doctor से consult करें।
+
+【Transliteration】
+Aapka white blood cell count ({value}) normal se kam hai. Yeh cells infections se ladti hain. Low count kuch medicines ya viral infections ke karan ho sakta hai. Safai ka khaas dhyan rakhein aur bimar logon se door rahein. Doctor se consult karein.""",
+                "HIGH": f"""【हिंदी】
+आपका white blood cell count ({value}) बढ़ा हुआ है। इसका मतलब है कि आपका body किसी infection या inflammation से लड़ रहा है। यह अक्सर temporary होता है। Doctor को दिखाना चाहिए।
+
+【Transliteration】
+Aapka white blood cell count ({value}) badha hua hai. Iska matlab hai ki aapka body kisi infection ya inflammation se lad raha hai. Yeh aksar temporary hota hai. Doctor ko dikhana chahiye."""
             },
         },
         "malayalam": {
             "Hemoglobin": {
-                "LOW": f"Ningalude hemoglobin level ({value}) normal range-il ninnum kuravanu. Hemoglobin ningalude blood-il oxygen carry cheyyunnu. Ithu iron uyarnna food kazhikkaathe varunnathaanu, athava heavy periods karanam. Ningalkku vishamavum durbalathayum thonnaam. Doctor-ne kandu iron supplements pattiyum samsaarikkanam.",
-                "HIGH": f"Ningalude hemoglobin level ({value}) normal-il ninnum kooduthalanu. Ithu high altitude, dehydration, athava smoking kaaranam sambhavikkaam. Valiya prashnamalla, pakshe ningalude doctor-ne ariyikkanam."
+                "LOW": f"""【മലയാളം】
+നിങ്ങളുടെ hemoglobin level ({value}) സാധാരണ പരിധിയില്‍ നിന്ന് കുറവാണ്. Hemoglobin നിങ്ങളുടെ blood-ല്‍ oxygen കൊണ്ടുപോകുന്നു. ഇത് iron ധാരാളമുള്ള ഭക്ഷണം കഴിക്കാതെ വരുന്നതാണ്, അഥവാ heavy periods കാരണം. നിങ്ങള്‍ക്ക് ക്ഷീണവും ദുര്‍ബലതയും തോന്നാം. Doctor-നെ കണ്ട് iron supplements പറ്റിയും സംസാരിക്കണം.
+
+【Transliteration】
+Ningalude hemoglobin level ({value}) normal range-il ninnu kuravanu. Hemoglobin ningalude blood-il oxygen carry cheyyunnu. Ithu iron ulla food kazhikkaathe varunnathaanu, athava heavy periods karanam. Ningalkku vishamavum durbalathayum thonnaam. Doctor-ne kandu iron supplements pattiyum samsaarikkanam.""",
+                "HIGH": f"""【മലയാളം】
+നിങ്ങളുടെ hemoglobin level ({value}) സാധാരണയില്‍ നിന്ന് കൂടുതലാണ്. ഇത് high altitude, dehydration, അഥവാ smoking കാരണം സംഭവിക്കാം. വലിയ പ്രശ്നമല്ല, പക്ഷേ നിങ്ങളുടെ doctor-നെ അറിയിക്കണം.
+
+【Transliteration】
+Ningalude hemoglobin level ({value}) normal-il ninnu kooduthalanu. Ithu high altitude, dehydration, athava smoking kaaranam sambhavikkaam. Valiya prashnamalla, pakshe ningalude doctor-ne ariyikkanam."""
             },
             "WBC": {
-                "LOW": f"Ningalude white blood cell count ({value}) normal-il ninnum kuravanu. Ee cells infections-ne ethirkkunnu. Low count chila medicines athava viral infections kaaranam aavaam. Hygiene nannaayi anusarikkanam, rogികളായ aalukaളെ avoid cheyyuka. Doctor-ne consult cheyyuka.",
-                "HIGH": f"Ningalude white blood cell count ({value}) koodiyittundu. Ithu ningalude body infection athava inflammation-ne ethirkunnu ennu kaanikkunu. Ithu temporary aanu. Doctor-ne kaanikkuka."
+                "LOW": f"""【മലയാളം】
+നിങ്ങളുടെ white blood cell count ({value}) സാധാരണയില്‍ നിന്ന് കുറവാണ്. ഈ cells infections-നെ എതിര്‍ക്കുന്നു. കുറഞ്ഞ count ചില medicines അഥവാ viral infections കാരണം ആവാം. Hygiene നന്നായി അനുസരിക്കണം, രോഗികളായ ആളുകളെ avoid ചെയ്യുക. Doctor-നെ consult ചെയ്യുക.
+
+【Transliteration】
+Ningalude white blood cell count ({value}) normal-il ninnu kuravanu. Ee cells infections-ne ethirkkunnu. Low count chila medicines athava viral infections kaaranam aavaam. Hygiene nannaayi anusarikkanam, rogikalaaya aalukale avoid cheyyuka. Doctor-ne consult cheyyuka.""",
+                "HIGH": f"""【മലയാളം】
+നിങ്ങളുടെ white blood cell count ({value}) കൂടിയിട്ടുണ്ട്. ഇത് നിങ്ങളുടെ body infection അഥവാ inflammation-നെ എതിര്‍ക്കുന്നു എന്ന് കാണിക്കുന്നു. ഇത് temporary ആണ്. Doctor-നെ കാണിക്കുക.
+
+【Transliteration】
+Ningalude white blood cell count ({value}) koodiyittundu. Ithu ningalude body infection athava inflammation-ne ethirkunnu ennu kaanikkunu. Ithu temporary aanu. Doctor-ne kaanikkuka."""
             },
             "Platelets": {
-                "LOW": f"Ningalude platelet count ({value}) normal-il ninnum kuravanu. Platelets blood clotting-nu upakaarappedunnu. Low count kaaranam bruising athava bleeding koodum. Contact sports avoid cheyyuka, teeth brush cheyyumpol gentle aayirikkuka. Vega doctor-ne kaanuka.",
-                "HIGH": f"Ningalude platelet count ({value}) koodiyittundu. Ithu exercise, stress, athava inflammation kaaranam sambhavikkaam. Valya tension vendaa, pakshe doctor-umaayi samsaarikkuka."
+                "LOW": f"""【മലയാളം】
+നിങ്ങളുടെ platelet count ({value}) സാധാരണയില്‍ നിന്ന് കുറവാണ്. Platelets blood clotting-നു ഉപകാരപ്പെടുന്നു. Low count കാരണം bruising അഥവാ bleeding കൂടും. Contact sports avoid ചെയ്യുക, teeth brush ചെയ്യുമ്പോള്‍ gentle ആയിരിക്കുക. വേഗം doctor-നെ കാണുക.
+
+【Transliteration】
+Ningalude platelet count ({value}) normal-il ninnu kuravanu. Platelets blood clotting-nu upakaarappedunnu. Low count kaaranam bruising athava bleeding koodum. Contact sports avoid cheyyuka, teeth brush cheyyumpol gentle aayirikkuka. Vegam doctor-ne kaanuka.""",
+                "HIGH": f"""【മലയാളം】
+നിങ്ങളുടെ platelet count ({value}) കൂടിയിട്ടുണ്ട്. ഇത് exercise, stress, അഥവാ inflammation കാരണം സംഭവിക്കാം. വലിയ tension വേണ്ടാ, പക്ഷേ doctor-ഉമായി സംസാരിക്കുക.
+
+【Transliteration】
+Ningalude platelet count ({value}) koodiyittundu. Ithu exercise, stress, athava inflammation kaaranam sambhavikkaam. Valiya tension vendaa, pakshe doctor-umaayi samsaarikkuka."""
             },
             "Blood Sugar": {
-                "LOW": f"Ningalude blood sugar ({value}) normal-il ninnum kuravanu. Ithu kaaranam veppam, viyarppu, athava confusion undaavam. Food skip cheythaal athava excess insulin edukkumpol ithu sambhavikkum. Carbs-um protein-um ulla snack kazhikkuka. Ithu thadarunnu engil doctor-ne kaanuka.",
-                "HIGH": f"Ningalude blood sugar ({value}) normal-il ninnum kooduthalanu. Ithu prediabetes athava diabetes indicate cheyyaam. High sugar diet, stress, athava exercise kuravaanu kaaranam. Doctor diet changes athava diabetes testing recommend cheyyum."
+                "LOW": f"""【മലയാളം】
+നിങ്ങളുടെ blood sugar ({value}) സാധാരണയില്‍ നിന്ന് കുറവാണ്. ഇത് കാരണം വെപ്പം, വിയര്‍പ്പ്, അഥവാ confusion ഉണ്ടാവാം. Food skip ചെയ്താല്‍ അഥവാ excess insulin എടുക്കുമ്പോള്‍ ഇത് സംഭവിക്കും. Carbs-ഉം protein-ഉം ഉള്ള snack കഴിക്കുക. ഇത് തുടരുന്നു എങ്കില്‍ doctor-നെ കാണുക.
+
+【Transliteration】
+Ningalude blood sugar ({value}) normal-il ninnu kuravanu. Ithu kaaranam veppam, viyarppu, athava confusion undaavam. Food skip cheythaal athava excess insulin edukkumpol ithu sambhavikkum. Carbs-um protein-um ulla snack kazhikkuka. Ithu thadarunnu engil doctor-ne kaanuka.""",
+                "HIGH": f"""【മലയാളം】
+നിങ്ങളുടെ blood sugar ({value}) സാധാരണയില്‍ നിന്ന് കൂടുതലാണ്. ഇത് prediabetes അഥവാ diabetes indicate ചെയ്യാം. High sugar diet, stress, അഥവാ exercise കുറവാണ് കാരണം. Doctor diet changes അഥവാ diabetes testing recommend ചെയ്യും.
+
+【Transliteration】
+Ningalude blood sugar ({value}) normal-il ninnu kooduthalanu. Ithu prediabetes athava diabetes indicate cheyyaam. High sugar diet, stress, athava exercise kuravaanu kaaranam. Doctor diet changes athava diabetes testing recommend cheyyum."""
             },
         }
     }
@@ -200,8 +270,16 @@ def get_fallback_explanation(test_name, value, normal_range, status, language="e
     
     # Ultimate fallback
     if language.lower() == "hindi":
-        return f"Aapka {test_name} level {status.lower()} hai - {value} (normal: {normal_range}). Kripya apne doctor se is result ke baare mein baat karein."
+        return f"""【हिंदी】
+आपका {test_name} level {status.lower()} है - {value} (सामान्य: {normal_range})। कृपया अपने doctor से इस result के बारे में बात करें।
+
+【Transliteration】
+Aapka {test_name} level {status.lower()} hai - {value} (normal: {normal_range}). Kripya apne doctor se is result ke baare mein baat karein."""
     elif language.lower() == "malayalam":
-        return f"Ningalude {test_name} level {status.lower()} aanu - {value} (normal: {normal_range}). Dayavayi ningalude doctor-umaayi ee result pattiyum samsaarikkuka."
+        return f"""【മലയാളം】
+നിങ്ങളുടെ {test_name} level {status.lower()} ആണ് - {value} (സാധാരണ: {normal_range}). ദയവായി നിങ്ങളുടെ doctor-ഉമായി ഈ result പറ്റിയും സംസാരിക്കുക.
+
+【Transliteration】
+Ningalude {test_name} level {status.lower()} aanu - {value} (normal: {normal_range}). Dayavayi ningalude doctor-umaayi ee result pattiyum samsaarikkuka."""
     else:
         return f"Your {test_name} level is {status.lower()} at {value} (normal: {normal_range}). Please discuss this result with your doctor for proper interpretation and next steps."
