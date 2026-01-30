@@ -25,6 +25,15 @@ def upload_report():
     if file.filename == "":
         return jsonify({"error": "Empty filename"}), 400
 
+    # Get selected language from form data
+    language = request.form.get("language", "english").lower()
+    
+    # Validate language
+    if language not in ["english", "hindi", "malayalam"]:
+        language = "english"
+    
+    print(f"\n🌐 Selected Language: {language.upper()}")
+
     file_path = os.path.join(UPLOAD_FOLDER, file.filename)
     file.save(file_path)
 
@@ -41,26 +50,28 @@ def upload_report():
         print("\n⚠️ Step 3: Checking for abnormal values...")
         abnormal_values = check_abnormal_values(parsed_values)
 
-        # 4️⃣ AI interpretation for each abnormal value
-        print("\n🤖 Step 4: Generating AI explanations...")
+        # 4️⃣ AI interpretation for each abnormal value in selected language
+        print(f"\n🤖 Step 4: Generating AI explanations in {language.upper()}...")
         for test_name, details in abnormal_values.items():
-            print(f"   → Generating explanation for {test_name}...")
+            print(f"   → Generating {language} explanation for {test_name}...")
             
             explanation = interpret_abnormality(
                 test_name=test_name,
                 value=details.get("value"),
                 normal_range=details.get("normal_range"),
-                status=details.get("status")
+                status=details.get("status"),
+                language=language  # Pass the selected language
             )
             
             details["explanation"] = explanation
-            print(f"   ✅ Explanation generated for {test_name}")
+            print(f"   ✅ {language.capitalize()} explanation generated for {test_name}")
 
         print("\n✨ Analysis complete!\n")
 
         return jsonify({
             "message": "Report analyzed successfully",
             "filename": file.filename,
+            "language": language,
             "abnormal_values": abnormal_values
         })
 
@@ -77,7 +88,8 @@ def health_check():
     """Simple health check endpoint"""
     return jsonify({
         "status": "healthy",
-        "service": "Medical Report Analyzer API"
+        "service": "Medical Report Analyzer API",
+        "supported_languages": ["english", "hindi", "malayalam"]
     })
 
 
@@ -86,6 +98,7 @@ if __name__ == "__main__":
     print("🏥 Medical Report Analyzer - Backend Server")
     print("="*50)
     print("Server starting on http://127.0.0.1:5000")
+    print("🌐 Supported Languages: English, Hindi, Malayalam")
     print("Press CTRL+C to stop")
     print("="*50 + "\n")
     

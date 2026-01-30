@@ -98,6 +98,16 @@
             color: #666;
             font-size: 14px;
         }
+
+        .language-badge {
+            display: inline-block;
+            background: #0066cc;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 15px;
+            font-size: 12px;
+            margin-bottom: 15px;
+        }
     </style>
 </head>
 <body>
@@ -120,11 +130,10 @@
         </div>
 
         <div class="form-row">
-            <select class="form-select">
-                <option value="">Select Language</option>
+            <select class="form-select" id="languageSelect">
                 <option value="english">English</option>
-                <option value="hindi">Hindi</option>
-                <option value="malayalam">Malayalam</option>
+                <option value="hindi">हिंदी (Hindi)</option>
+                <option value="malayalam">മലയാളം (Malayalam)</option>
             </select>
             
             <select class="form-select">
@@ -145,6 +154,8 @@
 
         <!-- RESULTS SECTION -->
         <div class="result-box" id="resultBox" style="display:none;">
+
+            <div id="languageBadge" class="language-badge"></div>
 
             <h3>📋 Your Test Results</h3>
             <div id="abnormalList"></div>
@@ -169,6 +180,7 @@ let selectedFile = null;
 const fileInput = document.getElementById("reportFile");
 const uploadBtn = document.getElementById("uploadBtn");
 const uploadText = document.querySelector(".upload-text");
+const languageSelect = document.getElementById("languageSelect");
 
 // File selection handler
 fileInput.addEventListener("change", () => {
@@ -183,6 +195,9 @@ fileInput.addEventListener("change", () => {
 uploadBtn.addEventListener("click", async () => {
     if (!selectedFile) return;
 
+    // Get selected language
+    const selectedLanguage = languageSelect.value;
+
     // Show loading state
     const originalText = uploadText.textContent;
     uploadText.innerHTML = '<span class="loading-spinner"></span>Analyzing your report...';
@@ -192,10 +207,12 @@ uploadBtn.addEventListener("click", async () => {
     const resultBox = document.getElementById("resultBox");
     const abnormalList = document.getElementById("abnormalList");
     const aiExplanation = document.getElementById("aiExplanation");
+    const languageBadge = document.getElementById("languageBadge");
 
     try {
         const formData = new FormData();
         formData.append("file", selectedFile);
+        formData.append("language", selectedLanguage);  // Send selected language
 
         const response = await fetch("http://127.0.0.1:5000/upload-report", {
             method: "POST",
@@ -213,15 +230,43 @@ uploadBtn.addEventListener("click", async () => {
         abnormalList.innerHTML = "";
         aiExplanation.innerHTML = "";
 
+        // Display language badge
+        const languageNames = {
+            "english": "🇬🇧 English",
+            "hindi": "🇮🇳 हिंदी",
+            "malayalam": "🇮🇳 മലയാളം"
+        };
+        languageBadge.textContent = `Explanations in: ${languageNames[selectedLanguage] || "English"}`;
+
         const abnormalValues = result.abnormal_values || {};
 
         // ✅ Case 1: No abnormalities found
         if (Object.keys(abnormalValues).length === 0) {
+            const successMessages = {
+                "english": {
+                    title: "🎉 Great News!",
+                    message: "All your test values are within the normal range.",
+                    note: "No follow-up action required at this time."
+                },
+                "hindi": {
+                    title: "🎉 Bahut Badhiya!",
+                    message: "Aapki saari test values normal range mein hain.",
+                    note: "Is samay koi follow-up action ki zaroorat nahi hai."
+                },
+                "malayalam": {
+                    title: "🎉 Valare Nannayi!",
+                    message: "Ningalude ellaa test values-um normal range-il aanu.",
+                    note: "Ippol follow-up action aavashyamilla."
+                }
+            };
+
+            const msg = successMessages[selectedLanguage] || successMessages["english"];
+
             abnormalList.innerHTML = `
                 <div class="success-message">
-                    <h3>🎉 Great News!</h3>
-                    <p>All your test values are within the normal range.</p>
-                    <p style="margin-top: 10px; font-size: 14px;">No follow-up action required at this time.</p>
+                    <h3>${msg.title}</h3>
+                    <p>${msg.message}</p>
+                    <p style="margin-top: 10px; font-size: 14px;">${msg.note}</p>
                 </div>
             `;
             uploadText.textContent = "✓ Analysis complete - All normal!";
@@ -268,7 +313,14 @@ uploadBtn.addEventListener("click", async () => {
 
     } catch (error) {
         console.error("Error:", error);
-        alert("⚠️ Something went wrong while analyzing the report. Please try again.");
+        
+        const errorMessages = {
+            "english": "⚠️ Something went wrong while analyzing the report. Please try again.",
+            "hindi": "⚠️ Report analyze karte waqt kuch galat ho gaya. Kripya dobara try karein.",
+            "malayalam": "⚠️ Report analyze cheyyumpol entho prashnam undaayi. Dayavayi veendum try cheyyuka."
+        };
+        
+        alert(errorMessages[selectedLanguage] || errorMessages["english"]);
         uploadText.textContent = "❌ Analysis failed - Please try again";
     } finally {
         // Reset button
