@@ -4,16 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Health Query Assistant - Medinsight AI</title>
+
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@200..800&display=swap" rel="stylesheet">
 </head>
 <body>
 
 <header>
     <img class="logo" src="assets/medinsight ai logo nobg 1.png" alt="Medinsight AI Logo">
+
     <div class="profile-wrapper">
         <img class="dp" src="assets/account 1.png" alt="Profile" id="profileBtn">
+
         <div class="profile-popup" id="profilePopup">
             <p class="profile-name">Anagha</p>
             <p class="profile-username">@anagha_k</p>
@@ -25,32 +27,30 @@
 <section class="chat-section">
     <h1 class="page-title">AI Health Query Assistant</h1>
     <p class="page-subtitle">Ask health questions and get clear, non-diagnostic answers instantly</p>
-    
+
     <div class="chat-container">
+
         <div class="chat-messages" id="chatMessages">
             <div class="chat-placeholder">
                 <p>Ask a health question to understand reports, tests, or symptoms</p>
             </div>
         </div>
-        
+
         <div class="chat-input-wrapper">
             <input type="text" class="chat-input" id="chatInput" placeholder="Ask anything">
             <button class="chat-send-btn" id="sendBtn">Send</button>
         </div>
+
     </div>
 </section>
 
 <footer>
     <div class="page-links">
-        <a href="about_us.html">About us</a>
-        <a href="ethics.html">Ethical and Medical Disclaimer</a>
-        <a href="terms.html">Terms and Conditions</a>
-        <a href="contact.html">Contact / Support</a>
+        <a href="#">About us</a>
+        <a href="#">Ethical and Medical Disclaimer</a>
+        <a href="#">Terms and Conditions</a>
+        <a href="#">Contact / Support</a>
     </div>
-    <p class="copyright">
-        2026 Health Companion | Academic Mini Project<br>
-        Built for educational and research purposes only
-    </p>
 </footer>
 
 <script>
@@ -73,13 +73,8 @@ document.getElementById('chatInput').addEventListener('keypress', function(e) {
 
 function formatResponse(text) {
     return text
-        // Fix bold even with spaces
         .replace(/\*\*\s*(.*?)\s*\*\*/g, "<b>$1</b>")
-
-        // Add line break before numbered points
         .replace(/(\d+\.)/g, "<br><br>$1")
-
-        // Convert new lines
         .replace(/\n/g, "<br>");
 }
 
@@ -100,11 +95,18 @@ function sendMessage() {
     chatMessages.appendChild(userMsg);
 
     input.value = '';
-    chatMessages.scrollTop = chatMessages.scrollHeight;
+    chatMessages.scrollTo({
+        top: chatMessages.scrollHeight,
+        behavior: "smooth"
+    });
 
-    // Disable button while loading
+    // Show loading bubble
+    const loading = document.createElement('div');
+    loading.className = 'chat-message ai';
+    loading.innerHTML = "Thinking...";
+    chatMessages.appendChild(loading);
+
     sendBtn.disabled = true;
-    sendBtn.textContent = "Thinking...";
 
     fetch("/get", {
         method: "POST",
@@ -115,24 +117,24 @@ function sendMessage() {
     })
     .then(response => response.text())
     .then(data => {
+        loading.remove();
+
         const aiMsg = document.createElement('div');
         aiMsg.className = 'chat-message ai';
         aiMsg.innerHTML = formatResponse(data);
 
         chatMessages.appendChild(aiMsg);
-        chatMessages.scrollTop = chatMessages.scrollHeight;
+
+        chatMessages.scrollTo({
+            top: chatMessages.scrollHeight,
+            behavior: "smooth"
+        });
 
         sendBtn.disabled = false;
-        sendBtn.textContent = "Send";
     })
-    .catch(error => {
-        const aiMsg = document.createElement('div');
-        aiMsg.className = 'chat-message ai';
-        aiMsg.textContent = "Error connecting to AI server.";
-        chatMessages.appendChild(aiMsg);
-
+    .catch(() => {
+        loading.innerHTML = "Error connecting to AI server.";
         sendBtn.disabled = false;
-        sendBtn.textContent = "Send";
     });
 }
 </script>
