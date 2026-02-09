@@ -11,10 +11,10 @@
 <body>
 
 <header>
-    <img class="logo" src="assets/medinsight ai logo nobg 1.png" alt="Medinsight AI Logo">
+    <img class="logo" src="{{ url_for('static', filename='assets/medinsight ai logo nobg 1.png') }}" alt="Medinsight AI Logo">
 
     <div class="profile-wrapper">
-        <img class="dp" src="assets/account 1.png" alt="Profile" id="profileBtn">
+        <img class="dp" src="{{ url_for('static', filename='assets/account 1.png') }}" alt="Profile" id="profileBtn">
 
         <div class="profile-popup" id="profilePopup">
             <p class="profile-name">Anagha</p>
