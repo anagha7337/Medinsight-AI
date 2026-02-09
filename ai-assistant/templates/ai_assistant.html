@@ -28,6 +28,14 @@
     <h1 class="page-title">AI Health Query Assistant</h1>
     <p class="page-subtitle">Ask health questions and get clear, non-diagnostic answers instantly</p>
 
+    <div class="suggestions">
+    <button onclick="sendMessage('What is fever?')">Fever</button>
+    <button onclick="sendMessage('Symptoms of dengue')">Dengue</button>
+    <button onclick="sendMessage('Normal blood pressure range')">Blood Pressure</button>
+    <button onclick="sendMessage('What causes headache?')">Headache</button>
+    </div>
+
+
     <div class="chat-container">
 
         <div class="chat-messages" id="chatMessages">
@@ -78,35 +86,50 @@ function formatResponse(text) {
         .replace(/\n/g, "<br>");
 }
 
-function sendMessage() {
+function typeText(element, html, speed = 10) {
+    let i = 0;
+    const text = html.replace(/<[^>]*>/g, ""); // strip tags for typing
+    element.innerHTML = "";
+
+    function type() {
+        if (i < text.length) {
+            element.innerHTML += text.charAt(i);
+            i++;
+            setTimeout(type, speed);
+        } else {
+            element.innerHTML = html; // restore formatting
+        }
+    }
+
+    type();
+}
+
+
+function sendMessage(messageFromChip = null) {
     const input = document.getElementById('chatInput');
     const sendBtn = document.getElementById('sendBtn');
-    const message = input.value.trim();
+    const message = messageFromChip || input.value.trim();
 
     if (!message) return;
 
     const chatMessages = document.getElementById('chatMessages');
     chatMessages.querySelector('.chat-placeholder')?.remove();
 
-    // USER MESSAGE
     const userMsg = document.createElement('div');
     userMsg.className = 'chat-message user';
     userMsg.textContent = message;
     chatMessages.appendChild(userMsg);
 
     input.value = '';
-    chatMessages.scrollTo({
-        top: chatMessages.scrollHeight,
-        behavior: "smooth"
-    });
-
-    // Show loading bubble
-    const loading = document.createElement('div');
-    loading.className = 'chat-message ai';
-    loading.innerHTML = "Thinking...";
-    chatMessages.appendChild(loading);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
 
     sendBtn.disabled = true;
+    sendBtn.textContent = "Thinking...";
+
+    const aiMsg = document.createElement('div');
+    aiMsg.className = 'chat-message ai';
+    aiMsg.textContent = "Typing...";
+    chatMessages.appendChild(aiMsg);
 
     fetch("/get", {
         method: "POST",
@@ -117,24 +140,30 @@ function sendMessage() {
     })
     .then(response => response.text())
     .then(data => {
-        loading.remove();
+        const formatted = formatResponse(data);
 
-        const aiMsg = document.createElement('div');
-        aiMsg.className = 'chat-message ai';
-        aiMsg.innerHTML = formatResponse(data);
+        typeText(aiMsg, formatted, 8);
 
-        chatMessages.appendChild(aiMsg);
+        const copyBtn = document.createElement("button");
+        copyBtn.textContent = "Copy";
+        copyBtn.className = "copy-btn";
+        copyBtn.onclick = () => {
+            navigator.clipboard.writeText(data);
+            copyBtn.textContent = "Copied!";
+            setTimeout(() => copyBtn.textContent = "Copy", 1500);
+        };
 
-        chatMessages.scrollTo({
-            top: chatMessages.scrollHeight,
-            behavior: "smooth"
-        });
+        aiMsg.appendChild(document.createElement("br"));
+        aiMsg.appendChild(copyBtn);
 
+        chatMessages.scrollTop = chatMessages.scrollHeight;
         sendBtn.disabled = false;
+        sendBtn.textContent = "Send";
     })
-    .catch(() => {
-        loading.innerHTML = "Error connecting to AI server.";
+    .catch(error => {
+        aiMsg.textContent = "Error connecting to AI server.";
         sendBtn.disabled = false;
+        sendBtn.textContent = "Send";
     });
 }
 </script>

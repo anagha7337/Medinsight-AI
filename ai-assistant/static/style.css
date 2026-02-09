@@ -841,3 +841,41 @@ footer {
         transform: translateY(0);
     }
 }
+
+
+/* Suggestions */
+.suggestions {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+
+.suggestions button {
+    background: white;
+    border: 1px solid #0b1957;
+    color: #0b1957;
+    padding: 8px 14px;
+    border-radius: 18px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: 0.2s;
+}
+
+.suggestions button:hover {
+    background: #0b1957;
+    color: white;
+}
+
+/* Copy button */
+.copy-btn {
+    margin-top: 10px;
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 8px;
+    border: none;
+    background: #0b1957;
+    color: white;
+    cursor: pointer;
+}

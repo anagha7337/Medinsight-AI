@@ -28,7 +28,7 @@ docsearch = PineconeVectorStore.from_existing_index(
     embedding=embeddings
 )
 
-retriever = docsearch.as_retriever(search_type="similarity", search_kwargs={"k":3})
+retriever = docsearch.as_retriever(search_type="similarity", search_kwargs={"k":1})
 
 llm = ChatGoogleGenerativeAI(
     model="gemini-2.5-flash",
@@ -55,9 +55,13 @@ def chat():
     msg = request.form["msg"]
     input = msg
     print(input)
-    response = rag_chain.invoke({"input": msg})
-    print("Response : ", response["answer"])
-    return str(response["answer"])
+    try:
+        response = rag_chain.invoke({"input": msg})
+        return str(response["answer"])
+    except Exception as e:
+        print("ERROR:", e)
+        return "AI service is temporarily busy. Please try again later."
+
 
 if __name__== "__main__":
     app.run(host="0.0.0.0", port= 8080, debug= True)
