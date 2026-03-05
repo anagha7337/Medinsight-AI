@@ -240,7 +240,7 @@ uploadBtn.addEventListener("click", async () => {
 
         const abnormalValues = result.abnormal_values || {};
 
-        // ✅ Case 1: No abnormalities found
+        // Case 1: No abnormalities found
         if (Object.keys(abnormalValues).length === 0) {
             const successMessages = {
                 "english": {

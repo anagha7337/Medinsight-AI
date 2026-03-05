@@ -15,16 +15,16 @@ def extract_text_from_image(image_path):
     if img is None:
         return ""
 
-    # 1️⃣ Upscale image (VERY IMPORTANT)
+    # Upscale image
     img = cv2.resize(img, None, fx=2, fy=2, interpolation=cv2.INTER_CUBIC)
 
-    # 2️⃣ Convert to grayscale
+    # Convert to grayscale
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-    # 3️⃣ Reduce noise
+    # Reduce noise
     gray = cv2.GaussianBlur(gray, (5, 5), 0)
 
-    # 4️⃣ Adaptive threshold (best for reports)
+    # Adaptive threshold (best for reports)
     thresh = cv2.adaptiveThreshold(
         gray, 255,
         cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
@@ -32,13 +32,10 @@ def extract_text_from_image(image_path):
         11, 2
     )
 
-    # ✅ FIXED: Removed tessedit_char_whitelist so we can extract ALL text including labels
-    # The whitelist was preventing extraction of test names like "Hemoglobin", "WBC", etc.
     config = r"--oem 3 --psm 6"
 
     text = pytesseract.image_to_string(thresh, config=config)
     
-    # 🔍 Debug: Print extracted text to console
     print("=" * 50)
     print("EXTRACTED TEXT FROM IMAGE:")
     print("=" * 50)

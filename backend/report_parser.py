@@ -50,17 +50,17 @@ def parse_report(text):
 
     patterns = {
         "Hemoglobin": {
-            "regex": r"(hemoglobin|haemoglobin|hb|hemoglobin (hb))\s*[:\-]?\s*([\d\.]+)",
+            "regex": r"(hemoglobin|haemoglobin|hb|hgb)\s*[:\-]?\s*([\d\.]+)",
             "normalizer": normalize_plain
         },
 
         "WBC": {
-            "regex": r"(wbc|total\s+wbc\s+count|white\s+blood\s+cell)\s*[:\-]?\s*([\d\.]+)\s*(x10\^3|10\^3|thousand|/ul|/µl)?",
+            "regex": r"(wbc|total\s+wbc\s+count|wbc\s+count|white\s+blood\s+cell)\s*[:\-]?\s*([\d\.]+)\s*(x10\^3|10\^3|thousand|/ul|/µl)?",
             "normalizer": normalize_wbc
         },
 
         "RBC": {
-            "regex": r"(rbc|total\s+rbc\s+count|red\s+blood\s+cell)\s*[:\-]?\s*([\d\.]+)\s*(million|mill)?",
+            "regex": r"(rbc|total\s+rbc\s+count|rbc\s+count|red\s+blood\s+cell)\s*[:\-]?\s*([\d\.]+)\s*(million|mill)?",
             "normalizer": normalize_rbc
         },
 
@@ -84,6 +84,11 @@ def parse_report(text):
             "normalizer": normalize_percentage
         },
 
+        "PCV": {
+            "regex": r"(pcv|packed\s+cell\s+volume|hematocrit|haematocrit)\s*[:\-]?\s*([\d\.]+)\s*(%)?",
+            "normalizer": normalize_percentage
+        },
+
         "ESR": {
             "regex": r"(esr|erythrocyte\s+sedimentation)\s*[:\-]?\s*([\d\.]+)",
             "normalizer": normalize_plain
@@ -98,7 +103,6 @@ def parse_report(text):
             continue
 
         raw_value = match.group(2)
-        # Fix: Properly get the unit (group 3) if it exists
         unit = match.group(3) if match.lastindex >= 3 else None
 
         print(f"✅ {test}: Found value={raw_value}, unit={unit}")

@@ -97,16 +97,96 @@ document.addEventListener("click", () => {
     profilePopup.classList.remove("show");
 });
 
-document.querySelector('.search-btn').addEventListener('click', function() {
-    const searchValue = document.getElementById('medicineSearch').value;
-    if (searchValue) {
-        document.getElementById('medicineResults').style.display = 'block';
-        // Backend integration point for actual search
+// Medicine search functionality
+const searchBtn = document.querySelector('.search-btn');
+const searchInput = document.getElementById('medicineSearch');
+const resultsDiv = document.getElementById('medicineResults');
+
+searchBtn.addEventListener('click', searchMedicine);
+searchInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+        searchMedicine();
     }
 });
-</script>
-<script src="medicine_lookup.js"></script>
 
+async function searchMedicine() {
+    const medicineName = searchInput.value.trim();
+    
+    if (!medicineName) {
+        alert('Please enter a medicine name');
+        return;
+    }
+    
+    // Show loading state
+    searchBtn.textContent = 'Searching...';
+    searchBtn.disabled = true;
+    resultsDiv.style.display = 'none';
+    
+    try {
+        const response = await fetch(`http://localhost:5000/api/search-medicine?name=${encodeURIComponent(medicineName)}`);
+        const data = await response.json();
+        
+        if (data.success) {
+            displayMedicineInfo(data.data);
+        } else {
+            alert(data.message || 'Medicine not found');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error fetching medicine data. Please check if the backend server is running.');
+    } finally {
+        searchBtn.textContent = 'Search';
+        searchBtn.disabled = false;
+    }
+}
+
+function displayMedicineInfo(medicine) {
+    // Update medicine name and category
+    document.querySelector('.medicine-name').textContent = medicine.brand_name || 'N/A';
+    document.querySelector('.medicine-category').textContent = medicine.category || 'Medication';
+    
+    // Update all info blocks
+    const infoBlocks = document.querySelectorAll('.info-block');
+    
+    // Chemical Composition (Generic Name)
+    infoBlocks[0].querySelector('p').textContent = medicine.generic_name || 'N/A';
+    
+    // Uses
+    infoBlocks[1].querySelector('p').innerHTML = formatText(medicine.uses);
+    
+    // Mode of Action
+    infoBlocks[2].querySelector('p').innerHTML = formatText(medicine.mechanism_of_action);
+    
+    // Common Side Effects (from adverse_reactions)
+    infoBlocks[3].querySelector('p').innerHTML = formatText(medicine.side_effects);
+    
+    // Serious Side Effects (from warnings)
+    infoBlocks[4].querySelector('p').innerHTML = formatText(medicine.warnings);
+    
+    // Show results
+    resultsDiv.style.display = 'block';
+    resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function formatText(text) {
+    if (!text || text === 'N/A' || text === 'None') {
+        return 'Information not available';
+    }
+    
+    // Remove excessive whitespace and format
+    text = text.replace(/\s+/g, ' ').trim();
+    
+    // Convert newlines to <br>
+    text = text.replace(/\n/g, '<br>');
+    
+    // Limit length if too long
+    if (text.length > 1000) {
+        text = text.substring(0, 1000) + '...';
+    }
+    
+    return text;
+}
+</script>
 
 </body>
 </html>
