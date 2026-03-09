@@ -1,3 +1,5 @@
+#Used when installing project as a Python package.
+
 from setuptools import setup, find_packages
 
 setup(

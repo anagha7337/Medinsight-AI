@@ -1,3 +1,4 @@
+#preapres project skeleton. Created empty folders and files.
 import os
 from pathlib import Path 
 import logging

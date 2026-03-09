@@ -279,7 +279,7 @@ function sendMessage(messageFromChip = null) {
     // Scroll to bottom
     chatMessages.scrollTop = chatMessages.scrollHeight;
 
-    // Disable send button
+    // Disable send button while fetching AI response
     sendBtn.disabled = true;
     sendBtn.innerHTML = `
         <span class="btn-text">Thinking</span>
@@ -357,6 +357,26 @@ function escapeHtml(text) {
 window.addEventListener('load', () => {
     chatInput.focus();
 });
+
+// Auto-hide header on scroll
+let lastScrollTop = 0;
+    const header = document.querySelector('header');
+    const scrollThreshold = 10;
+
+    window.addEventListener('scroll', () => {
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        
+        if (Math.abs(scrollTop - lastScrollTop) > scrollThreshold) {
+            if (scrollTop > lastScrollTop && scrollTop > 80) {
+                header.classList.add('hidden');
+            } else {
+                header.classList.remove('hidden');
+            }
+            
+            lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
+        }
+    }, false);
+
 </script>
 
 </body>

@@ -1,3 +1,5 @@
+# Prepates data. Creates Pineconde index
+ 
 from src.helper import load_pdf_file, text_split, download_hugging_face_embeddings
 
 from pinecone import Pinecone, ServerlessSpec
@@ -11,10 +13,11 @@ load_dotenv()
 
 PINECONE_API_KEY = os.environ.get("PINECONE_API_KEY")
 
-# Load data
+# Load the pdf
 print("Loading PDFs...")
 extracted_data = load_pdf_file(data="Data/")
 
+#breaks long texts into smaller chunks
 print("Splitting text...")
 text_chunks = text_split(extracted_data)
 
