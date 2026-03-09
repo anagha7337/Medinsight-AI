@@ -2,7 +2,6 @@ import os
 from groq import Groq
 
 # ⚙️ Initialize Groq client
-# Get your API key from: https://console.groq.com/
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
 # Validate API key exists
@@ -31,47 +30,65 @@ def build_prompt(test_name, value, normal_range, status, language="english"):
     language_instructions = {
         "english": """Please explain in simple, friendly English language.""",
         
-        "hindi": """Please provide TWO versions of the explanation:
-
-**Version 1 - Native Script (हिंदी):**
-Write the FULL explanation in Devanagari (Hindi) script. Keep medical terms in English but write everything else in proper Hindi.
-Example: "आपका hemoglobin level (12.5) सामान्य से कम है। Hemoglobin आपके खून में oxygen ले जाता है..."
-
-**Version 2 - Transliteration (Hinglish):**
-Write the same explanation using Latin script (Roman Hindi) - how Indians type Hindi in English.
-Example: "Aapka hemoglobin level (12.5) normal se kam hai. Hemoglobin aapke khoon mein oxygen carry karta hai..."
-
-Format your response exactly like this:
-【हिंदी】
-[Your Hindi script explanation here]
-
-【Transliteration】
-[Your Hinglish explanation here]""",
+        "hindi": """Please provide TWO versions:
+【हिंदी】 Full explanation in Devanagari script (medical terms in English)
+【Transliteration】 Same in Latin script (Hinglish)
+Example: "आपका hemoglobin..." then "Aapka hemoglobin..."
+""",
         
-        "malayalam": """Please provide TWO versions of the explanation:
-
-**Version 1 - Native Script (മലയാളം):**
-Write the FULL explanation in Malayalam script. Keep medical terms in English but write everything else in proper Malayalam.
-Example: "നിങ്ങളുടെ hemoglobin level (12.5) സാധാരണ പരിധിയില്‍ നിന്ന് കുറവാണ്. Hemoglobin നിങ്ങളുടെ blood-ല്‍ oxygen കൊണ്ടുപോകുന്നു..."
-
-**Version 2 - Transliteration (Manglish):**
-Write the same explanation using ONLY Latin/English script - exactly how Malayalis type Malayalam using English keyboard.
-Use simple English letters only. No special Unicode characters.
-Example: "Ningalude hemoglobin level (12.5) normal range-il ninnu kuravanu. Hemoglobin ningalude blood-il oxygen carry cheyyunnu..."
-
-IMPORTANT for Transliteration:
-- Use only a-z, A-Z letters
-- Replace ള with 'la' or 'l' 
-- Replace ു with 'u'
-- Replace ് with '' (remove it or use simple letter)
-- Write naturally as Keralites type in WhatsApp/SMS
-
-Format your response exactly like this:
-【മലയാളം】
-[Your Malayalam script explanation here]
-
-【Transliteration】
-[Your pure English-letter Manglish explanation here]"""
+        "malayalam": """Please provide TWO versions:
+【മലയാളം】 Full explanation in Malayalam script (medical terms in English)
+【Transliteration】 Same in Latin script (Manglish) - only a-z letters
+Example: "നിങ്ങളുടെ hemoglobin..." then "Ningalude hemoglobin..."
+""",
+        
+        "tamil": """Please provide TWO versions:
+【தமிழ்】 Full explanation in Tamil script (medical terms in English)
+【Transliteration】 Same in Latin script (Tanglish) - only a-z letters
+Example: "உங்கள் hemoglobin..." then "Ungal hemoglobin..."
+""",
+        
+        "telugu": """Please provide TWO versions:
+【తెలుగు】 Full explanation in Telugu script (medical terms in English)
+【Transliteration】 Same in Latin script (Tenglish) - only a-z letters
+Example: "మీ hemoglobin..." then "Mee hemoglobin..."
+""",
+        
+        "kannada": """Please provide TWO versions:
+【ಕನ್ನಡ】 Full explanation in Kannada script (medical terms in English)
+【Transliteration】 Same in Latin script (Kanglish) - only a-z letters
+Example: "ನಿಮ್ಮ hemoglobin..." then "Nimma hemoglobin..."
+""",
+        
+        "marathi": """Please provide TWO versions:
+【मराठी】 Full explanation in Devanagari script (medical terms in English)
+【Transliteration】 Same in Latin script (Marathlish) - only a-z letters
+Example: "तुमचा hemoglobin..." then "Tumcha hemoglobin..."
+""",
+        
+        "bengali": """Please provide TWO versions:
+【বাংলা】 Full explanation in Bengali script (medical terms in English)
+【Transliteration】 Same in Latin script (Banglish) - only a-z letters
+Example: "আপনার hemoglobin..." then "Apnar hemoglobin..."
+""",
+        
+        "gujarati": """Please provide TWO versions:
+【ગુજરાતી】 Full explanation in Gujarati script (medical terms in English)
+【Transliteration】 Same in Latin script (Guglish) - only a-z letters
+Example: "તમારું hemoglobin..." then "Tamaru hemoglobin..."
+""",
+        
+        "urdu": """Please provide TWO versions:
+【اردو】 Full explanation in Urdu script (medical terms in English)
+【Transliteration】 Same in Latin script (Roman Urdu) - only a-z letters
+Example: "آپ کا hemoglobin..." then "Aap ka hemoglobin..."
+""",
+        
+        "odia": """Please provide TWO versions:
+【ଓଡ଼ିଆ】 Full explanation in Odia script (medical terms in English)
+【Transliteration】 Same in Latin script (Odlish) - only a-z letters
+Example: "ଆପଣଙ୍କର hemoglobin..." then "Apanankara hemoglobin..."
+"""
     }
     
     lang_instruction = language_instructions.get(language.lower(), language_instructions["english"])
@@ -86,103 +103,58 @@ Format your response exactly like this:
 
 {lang_instruction}
 
-Explain the following in 4-5 sentences:
+Explain in 4-5 sentences:
+1. What this test measures (1 sentence)
+2. What {status.lower()} means (reassuring, not alarming)
+3. Common everyday causes (lifestyle, diet)
+4. What they might feel
+5. Simple next step (consult doctor)
 
-1. What this test measures in the body (in one sentence)
-2. What it means when the value is {status.lower()} (be reassuring, not alarming)
-3. Common everyday causes (lifestyle, diet, or natural factors)
-4. What they might notice or feel (if anything)
-5. A simple next step (like "discuss with your doctor" or "monitor it")
-
-Important guidelines:
-- Use everyday language that common people understand
-- Keep medical/biological terms in English (like hemoglobin, WBC, platelets, etc.)
-- Be reassuring and calm in tone
-- Don't diagnose specific diseases
-- Keep it concise (4-5 sentences total)
-- Focus on education, not fear
+Guidelines:
+- Keep medical terms in English (hemoglobin, WBC, etc.)
+- Use everyday language
+- Be reassuring and calm
+- 4-5 sentences total
 """
 
 def interpret_abnormality(test_name, value, normal_range, status, language="english"):
-    """
-    Generate AI explanation for abnormal blood test value using Groq
-    
-    Args:
-        test_name (str): Name of the test (e.g., "Hemoglobin")
-        value (float): The actual test value
-        normal_range (str): Normal range string (e.g., "13.0 - 17.0")
-        status (str): "HIGH" or "LOW"
-        language (str): Language for explanation ("english", "hindi", "malayalam")
-    
-    Returns:
-        str: AI-generated explanation in requested language
-    """
+    """Generate AI explanation for abnormal blood test value using Groq"""
     
     try:
-        # Call Groq API
         chat_completion = client.chat.completions.create(
             messages=[
                 {
                     "role": "system",
-                    "content": f"You are a compassionate medical assistant who explains lab results in simple, non-technical language. You educate without alarming people. Respond in {language} language as instructed, providing both native script and transliteration for Hindi and Malayalam."
+                    "content": f"You are a compassionate medical assistant. Explain lab results in simple {language} language. For Indian languages, provide both native script and Latin transliteration."
                 },
                 {
                     "role": "user",
                     "content": build_prompt(test_name, value, normal_range, status, language)
                 }
             ],
-            model="llama-3.3-70b-versatile",  # Latest fast and accurate model
-            temperature=0.3,  # Lower temperature for more consistent medical advice
-            max_tokens=600,  # Increased for dual format
+            model="llama-3.3-70b-versatile",
+            temperature=0.3,
+            max_tokens=600,
             top_p=0.9
         )
         
-        # Extract the generated text
         explanation = chat_completion.choices[0].message.content.strip()
-        
-        if explanation:
-            return explanation
-        else:
-            return get_fallback_explanation(test_name, value, normal_range, status, language)
+        return explanation if explanation else get_fallback_explanation(test_name, value, normal_range, status, language)
     
     except Exception as e:
-        error_msg = str(e)
-        print(f"❌ Groq API Error: {error_msg}")
-        
-        # Check for specific error types
-        if "401" in error_msg or "invalid_api_key" in error_msg.lower():
-            print("\n⚠️ Your API key is invalid or expired.")
-            print("💡 Get a new one from: https://console.groq.com/\n")
-        elif "429" in error_msg or "rate_limit" in error_msg.lower():
-            print("\n⚠️ Rate limit exceeded. Please wait a moment and try again.\n")
-        
-        # Return fallback explanation
+        print(f"❌ Groq API Error: {e}")
         return get_fallback_explanation(test_name, value, normal_range, status, language)
 
 
 def get_fallback_explanation(test_name, value, normal_range, status, language="english"):
-    """
-    Provide fallback explanations if API fails
-    """
+    """Provide fallback explanations if API fails"""
     
     fallback_explanations = {
         "english": {
             "Hemoglobin": {
                 "LOW": f"Your hemoglobin level ({value}) is below normal. Hemoglobin carries oxygen in your blood. Low levels often come from not getting enough iron in your diet or heavy menstrual periods. You might feel tired or weak. Talk to your doctor about iron supplements.",
                 "HIGH": f"Your hemoglobin level ({value}) is above normal. This can happen at high altitudes, from dehydration, or smoking. It's usually not a concern, but mention it to your doctor on your next visit."
-            },
-            "WBC": {
-                "LOW": f"Your white blood cell count ({value}) is below normal. These cells fight infections. Low counts can come from certain medications or viral infections. Be extra careful about hygiene and avoid sick people. Discuss this with your doctor.",
-                "HIGH": f"Your white blood cell count ({value}) is elevated. This usually means your body is fighting an infection or inflammation. It's often temporary. Your doctor may want to investigate the cause."
-            },
-            "Platelets": {
-                "LOW": f"Your platelet count ({value}) is below normal. Platelets help your blood clot. Low counts can increase bruising or bleeding. Avoid contact sports and be gentle when brushing teeth. See your doctor soon.",
-                "HIGH": f"Your platelet count ({value}) is elevated. This can happen after exercise, stress, or inflammation. It's often not serious but worth discussing with your doctor to rule out other causes."
-            },
-            "Blood Sugar": {
-                "LOW": f"Your blood sugar ({value}) is below normal. This can cause shakiness, sweating, or confusion. It may be from skipping meals or too much insulin. Have a snack with carbs and protein. If this happens often, see your doctor.",
-                "HIGH": f"Your blood sugar ({value}) is above normal. This could indicate prediabetes or diabetes. High blood sugar can come from diet, stress, or lack of exercise. Your doctor may recommend dietary changes or testing for diabetes."
-            },
+            }
         },
         "hindi": {
             "Hemoglobin": {
@@ -190,25 +162,8 @@ def get_fallback_explanation(test_name, value, normal_range, status, language="e
 आपका hemoglobin level ({value}) सामान्य से कम है। Hemoglobin आपके खून में oxygen पहुँचाता है। यह ज़्यादातर खाने में iron की कमी या ज़्यादा periods के कारण होता है। आपको थकान और कमज़ोरी महसूस हो सकती है। Doctor से iron supplements के बारे में बात करें।
 
 【Transliteration】
-Aapka hemoglobin level ({value}) normal se kam hai. Hemoglobin aapke khoon mein oxygen carry karta hai. Yeh zyada tar iron ki kami ya heavy periods ke karan hota hai. Aapko thakaan aur kamzori mehsoos ho sakti hai. Doctor se iron supplements ke baare mein baat karein.""",
-                "HIGH": f"""【हिंदी】
-आपका hemoglobin level ({value}) सामान्य से ज़्यादा है। यह ऊँचाई पर, dehydration, या smoking से हो सकता है। ज़्यादा चिंता की बात नहीं है, लेकिन अपने doctor को ज़रूर बताइए।
-
-【Transliteration】
-Aapka hemoglobin level ({value}) normal se zyada hai. Yeh high altitude, dehydration, ya smoking se ho sakta hai. Zyada chinta ki baat nahi hai, lekin apne doctor ko zaroor bataiye."""
-            },
-            "WBC": {
-                "LOW": f"""【हिंदी】
-आपका white blood cell count ({value}) सामान्य से कम है। ये cells infections से लड़ती हैं। कम count कुछ medicines या viral infections के कारण हो सकता है। सफ़ाई का ख़ास ध्यान रखें और बीमार लोगों से दूर रहें। Doctor से consult करें।
-
-【Transliteration】
-Aapka white blood cell count ({value}) normal se kam hai. Yeh cells infections se ladti hain. Low count kuch medicines ya viral infections ke karan ho sakta hai. Safai ka khaas dhyan rakhein aur bimar logon se door rahein. Doctor se consult karein.""",
-                "HIGH": f"""【हिंदी】
-आपका white blood cell count ({value}) बढ़ा हुआ है। इसका मतलब है कि आपका body किसी infection या inflammation से लड़ रहा है। यह अक्सर temporary होता है। Doctor को दिखाना चाहिए।
-
-【Transliteration】
-Aapka white blood cell count ({value}) badha hua hai. Iska matlab hai ki aapka body kisi infection ya inflammation se lad raha hai. Yeh aksar temporary hota hai. Doctor ko dikhana chahiye."""
-            },
+Aapka hemoglobin level ({value}) normal se kam hai. Hemoglobin aapke khoon mein oxygen carry karta hai. Yeh zyada tar iron ki kami ya heavy periods ke karan hota hai. Aapko thakaan aur kamzori mehsoos ho sakti hai. Doctor se iron supplements ke baare mein baat karein."""
+            }
         },
         "malayalam": {
             "Hemoglobin": {
@@ -216,49 +171,80 @@ Aapka white blood cell count ({value}) badha hua hai. Iska matlab hai ki aapka b
 നിങ്ങളുടെ hemoglobin level ({value}) സാധാരണ പരിധിയില്‍ നിന്ന് കുറവാണ്. Hemoglobin നിങ്ങളുടെ blood-ല്‍ oxygen കൊണ്ടുപോകുന്നു. ഇത് iron ധാരാളമുള്ള ഭക്ഷണം കഴിക്കാതെ വരുന്നതാണ്, അഥവാ heavy periods കാരണം. നിങ്ങള്‍ക്ക് ക്ഷീണവും ദുര്‍ബലതയും തോന്നാം. Doctor-നെ കണ്ട് iron supplements പറ്റിയും സംസാരിക്കണം.
 
 【Transliteration】
-Ningalude hemoglobin level ({value}) normal range-il ninnu kuravanu. Hemoglobin ningalude blood-il oxygen carry cheyyunnu. Ithu iron ulla food kazhikkaathe varunnathaanu, athava heavy periods karanam. Ningalkku vishamavum durbalathayum thonnaam. Doctor-ne kandu iron supplements pattiyum samsaarikkanam.""",
-                "HIGH": f"""【മലയാളം】
-നിങ്ങളുടെ hemoglobin level ({value}) സാധാരണയില്‍ നിന്ന് കൂടുതലാണ്. ഇത് high altitude, dehydration, അഥവാ smoking കാരണം സംഭവിക്കാം. വലിയ പ്രശ്നമല്ല, പക്ഷേ നിങ്ങളുടെ doctor-നെ അറിയിക്കണം.
+Ningalude hemoglobin level ({value}) normal range-il ninnu kuravanu. Hemoglobin ningalude blood-il oxygen carry cheyyunnu. Ithu iron ulla food kazhikkaathe varunnathaanu, athava heavy periods karanam. Ningalkku vishamavum durbalathayum thonnaam. Doctor-ne kandu iron supplements pattiyum samsaarikkanam."""
+            }
+        },
+        "tamil": {
+            "Hemoglobin": {
+                "LOW": f"""【தமிழ்】
+உங்கள் hemoglobin level ({value}) சாதாரண அளவை விட குறைவாக உள்ளது. Hemoglobin உங்கள் இரத்தத்தில் oxygen-ஐ எடுத்துச் செல்கிறது. இது பெரும்பாலும் உணவில் iron குறைவாக இருப்பதால் அல்லது அதிக periods-ஆல் ஏற்படுகிறது. உங்களுக்கு சோர்வு மற்றும் பலவீனம் ஏற்படலாம். Doctor-ஐ சந்தித்து iron supplements பற்றி பேசுங்கள்.
 
 【Transliteration】
-Ningalude hemoglobin level ({value}) normal-il ninnu kooduthalanu. Ithu high altitude, dehydration, athava smoking kaaranam sambhavikkaam. Valiya prashnamalla, pakshe ningalude doctor-ne ariyikkanam."""
-            },
-            "WBC": {
-                "LOW": f"""【മലയാളം】
-നിങ്ങളുടെ white blood cell count ({value}) സാധാരണയില്‍ നിന്ന് കുറവാണ്. ഈ cells infections-നെ എതിര്‍ക്കുന്നു. കുറഞ്ഞ count ചില medicines അഥവാ viral infections കാരണം ആവാം. Hygiene നന്നായി അനുസരിക്കണം, രോഗികളായ ആളുകളെ avoid ചെയ്യുക. Doctor-നെ consult ചെയ്യുക.
+Ungal hemoglobin level ({value}) normal range-ah vida kuraivaaga ulladu. Hemoglobin ungal blood-il oxygen carry seyyudhu. Idhu iron kuraivaaga iruppadhaal athava heavy periods-aal varudhu. Ungalukku tiredness um weakness um thonarum. Doctor-ai santithu iron supplements pathi pesunga."""
+            }
+        },
+        "telugu": {
+            "Hemoglobin": {
+                "LOW": f"""【తెలుగు】
+మీ hemoglobin level ({value}) సాధారణ కంటే తక్కువగా ఉంది. Hemoglobin మీ రక్తంలో oxygen తీసుకెళ్తుంది. ఇది ఎక్కువగా ఆహారంలో iron లోపం లేదా ఎక్కువ periods వల్ల వస్తుంది. మీకు అలసట మరియు బలహీనత అనిపించవచ్చు. Doctor ని కలసి iron supplements గురించి మాట్లాడండి.
 
 【Transliteration】
-Ningalude white blood cell count ({value}) normal-il ninnu kuravanu. Ee cells infections-ne ethirkkunnu. Low count chila medicines athava viral infections kaaranam aavaam. Hygiene nannaayi anusarikkanam, rogikalaaya aalukale avoid cheyyuka. Doctor-ne consult cheyyuka.""",
-                "HIGH": f"""【മലയാളം】
-നിങ്ങളുടെ white blood cell count ({value}) കൂടിയിട്ടുണ്ട്. ഇത് നിങ്ങളുടെ body infection അഥവാ inflammation-നെ എതിര്‍ക്കുന്നു എന്ന് കാണിക്കുന്നു. ഇത് temporary ആണ്. Doctor-നെ കാണിക്കുക.
+Mee hemoglobin level ({value}) normal kante thakkuvaga undi. Hemoglobin mee blood-lo oxygen carry chesthundi. Idhi iron loopam leda heavy periods valla vasthundi. Meeku alasata mariyu balaheenata anipinchavachu. Doctor ni kalasi iron supplements gurinchi matladandi."""
+            }
+        },
+        "kannada": {
+            "Hemoglobin": {
+                "LOW": f"""【ಕನ್ನಡ】
+ನಿಮ್ಮ hemoglobin level ({value}) ಸಾಮಾನ್ಯಕ್ಕಿಂತ ಕಡಿಮೆ ಇದೆ. Hemoglobin ನಿಮ್ಮ ರಕ್ತದಲ್ಲಿ oxygen ಅನ್ನು ಸಾಗಿಸುತ್ತದೆ. ಇದು ಹೆಚ್ಚಾಗಿ ಆಹಾರದಲ್ಲಿ iron ಕೊರತೆ ಅಥವಾ ಹೆಚ್ಚು periods ಕಾರಣ ಆಗುತ್ತದೆ. ನಿಮಗೆ ದಣಿವು ಮತ್ತು ದೌರ್ಬಲ್ಯ ಅನಿಸಬಹುದು. Doctor ಅವರನ್ನು ಭೇಟಿ ಮಾಡಿ iron supplements ಬಗ್ಗೆ ಮಾತನಾಡಿ.
 
 【Transliteration】
-Ningalude white blood cell count ({value}) koodiyittundu. Ithu ningalude body infection athava inflammation-ne ethirkunnu ennu kaanikkunu. Ithu temporary aanu. Doctor-ne kaanikkuka."""
-            },
-            "Platelets": {
-                "LOW": f"""【മലയാളം】
-നിങ്ങളുടെ platelet count ({value}) സാധാരണയില്‍ നിന്ന് കുറവാണ്. Platelets blood clotting-നു ഉപകാരപ്പെടുന്നു. Low count കാരണം bruising അഥവാ bleeding കൂടും. Contact sports avoid ചെയ്യുക, teeth brush ചെയ്യുമ്പോള്‍ gentle ആയിരിക്കുക. വേഗം doctor-നെ കാണുക.
+Nimma hemoglobin level ({value}) normal gintha kadime ide. Hemoglobin nimma blood-alli oxygen carry madthade. Idhu iron shortage athava heavy periods inda aagthade. Nimge tiredness mathu weakness anisbahudu. Doctor avrannu meet maadi iron supplements bagge matnaadi."""
+            }
+        },
+        "marathi": {
+            "Hemoglobin": {
+                "LOW": f"""【मराठी】
+तुमचा hemoglobin level ({value}) सामान्यपेक्षा कमी आहे. Hemoglobin तुमच्या रक्तात oxygen वाहून नेतो. हे मुख्यत्वे अन्नात iron कमी असल्यामुळे किंवा जास्त periods मुळे होते. तुम्हाला थकवा आणि कमकुवतपणा जाणवू शकतो. Doctor ना भेटून iron supplements बद्दल बोला.
 
 【Transliteration】
-Ningalude platelet count ({value}) normal-il ninnu kuravanu. Platelets blood clotting-nu upakaarappedunnu. Low count kaaranam bruising athava bleeding koodum. Contact sports avoid cheyyuka, teeth brush cheyyumpol gentle aayirikkuka. Vegam doctor-ne kaanuka.""",
-                "HIGH": f"""【മലയാളം】
-നിങ്ങളുടെ platelet count ({value}) കൂടിയിട്ടുണ്ട്. ഇത് exercise, stress, അഥവാ inflammation കാരണം സംഭവിക്കാം. വലിയ tension വേണ്ടാ, പക്ഷേ doctor-ഉമായി സംസാരിക്കുക.
+Tumcha hemoglobin level ({value}) normal peksha kami aahe. Hemoglobin tumchya blood madhe oxygen carry karto. He iron chi kami kinva jasta periods mule hote. Tumhala thakwa ani kamkuvatpana janvu shakto. Doctor na bhetun iron supplements baddal bola."""
+            }
+        },
+        "bengali": {
+            "Hemoglobin": {
+                "LOW": f"""【বাংলা】
+আপনার hemoglobin level ({value}) স্বাভাবিকের চেয়ে কম। Hemoglobin আপনার রক্তে oxygen বহন করে। এটি সাধারণত খাবারে iron এর অভাব বা বেশি periods এর কারণে হয়। আপনি ক্লান্তি এবং দুর্বলতা অনুভব করতে পারেন। Doctor এর সাথে দেখা করে iron supplements সম্পর্কে কথা বলুন।
 
 【Transliteration】
-Ningalude platelet count ({value}) koodiyittundu. Ithu exercise, stress, athava inflammation kaaranam sambhavikkaam. Valiya tension vendaa, pakshe doctor-umaayi samsaarikkuka."""
-            },
-            "Blood Sugar": {
-                "LOW": f"""【മലയാളം】
-നിങ്ങളുടെ blood sugar ({value}) സാധാരണയില്‍ നിന്ന് കുറവാണ്. ഇത് കാരണം വെപ്പം, വിയര്‍പ്പ്, അഥവാ confusion ഉണ്ടാവാം. Food skip ചെയ്താല്‍ അഥവാ excess insulin എടുക്കുമ്പോള്‍ ഇത് സംഭവിക്കും. Carbs-ഉം protein-ഉം ഉള്ള snack കഴിക്കുക. ഇത് തുടരുന്നു എങ്കില്‍ doctor-നെ കാണുക.
+Apnar hemoglobin level ({value}) normal theke kom. Hemoglobin apnar blood-e oxygen carry kore. Eta khub khaborey iron er ovab ba beshi periods er karone hoy. Apni klanti ebong durbolota onubhob korte paren. Doctor er sathe dekha kore iron supplements niye kotha bolun."""
+            }
+        },
+        "gujarati": {
+            "Hemoglobin": {
+                "LOW": f"""【ગુજરાતી】
+તમારું hemoglobin level ({value}) સામાન્ય કરતાં ઓછું છે. Hemoglobin તમારા લોહીમાં oxygen લઈ જાય છે. આ મોટે ભાગે ખોરાકમાં iron ની ઓછી માત્રા અથવા વધારે periods ના કારણે થાય છે. તમને થાક અને નબળાઈ લાગી શકે છે. Doctor ને મળીને iron supplements વિશે વાત કરો.
 
 【Transliteration】
-Ningalude blood sugar ({value}) normal-il ninnu kuravanu. Ithu kaaranam veppam, viyarppu, athava confusion undaavam. Food skip cheythaal athava excess insulin edukkumpol ithu sambhavikkum. Carbs-um protein-um ulla snack kazhikkuka. Ithu thadarunnu engil doctor-ne kaanuka.""",
-                "HIGH": f"""【മലയാളം】
-നിങ്ങളുടെ blood sugar ({value}) സാധാരണയില്‍ നിന്ന് കൂടുതലാണ്. ഇത് prediabetes അഥവാ diabetes indicate ചെയ്യാം. High sugar diet, stress, അഥവാ exercise കുറവാണ് കാരണം. Doctor diet changes അഥവാ diabetes testing recommend ചെയ്യും.
+Tamaru hemoglobin level ({value}) normal karta ochhu chhe. Hemoglobin tamara blood ma oxygen lai jaay chhe. Aa iron ni kami athva vadhare periods na karane thaay chhe. Tamne thak ane nabalai lagi shake chhe. Doctor ne maleeney iron supplements vishe vat karo."""
+            }
+        },
+        "urdu": {
+            "Hemoglobin": {
+                "LOW": f"""【اردو】
+آپ کا hemoglobin level ({value}) معمول سے کم ہے۔ Hemoglobin آپ کے خون میں oxygen لے جاتا ہے۔ یہ زیادہ تر خوراک میں iron کی کمی یا زیادہ periods کی وجہ سے ہوتا ہے۔ آپ کو تھکاوٹ اور کمزوری محسوس ہو سکتی ہے۔ Doctor سے iron supplements کے بارے میں بات کریں۔
 
 【Transliteration】
-Ningalude blood sugar ({value}) normal-il ninnu kooduthalanu. Ithu prediabetes athava diabetes indicate cheyyaam. High sugar diet, stress, athava exercise kuravaanu kaaranam. Doctor diet changes athava diabetes testing recommend cheyyum."""
-            },
+Aap ka hemoglobin level ({value}) normal se kam hai. Hemoglobin aap ke khoon mein oxygen le jaata hai. Yeh iron ki kami ya zyada periods ki wajah se hota hai. Aap ko thakawat aur kamzori mehsoos ho sakti hai. Doctor se iron supplements ke baare mein baat karein."""
+            }
+        },
+        "odia": {
+            "Hemoglobin": {
+                "LOW": f"""【ଓଡ଼ିଆ】
+ଆପଣଙ୍କର hemoglobin level ({value}) ସାଧାରଣ ଠାରୁ କମ୍ ଅଛି। Hemoglobin ଆପଣଙ୍କ ରକ୍ତରେ oxygen ବହନ କରେ। ଏହା ମୁଖ୍ୟତଃ ଖାଦ୍ୟରେ iron ଅଭାବ କିମ୍ବା ଅଧିକ periods କାରଣରୁ ହୁଏ। ଆପଣ କ୍ଲାନ୍ତି ଏବଂ ଦୁର୍ବଳତା ଅନୁଭବ କରିପାରନ୍ତି। Doctor ଙ୍କୁ ଭେଟି iron supplements ବିଷୟରେ କଥା ହୁଅନ୍ତୁ।
+
+【Transliteration】
+Apanankara hemoglobin level ({value}) normal tharu kam achhi. Hemoglobin apananka blood re oxygen carry kare. Eha khadya re iron abhab kimba adhika periods karanaru hue. Apana klanti ebam durbalata anubhaba karipaaranti. Doctor nku bhenti iron supplements bisayare katha huantu."""
+            }
         }
     }
     
@@ -268,18 +254,27 @@ Ningalude blood sugar ({value}) normal-il ninnu kooduthalanu. Ithu prediabetes a
     if test_name in lang_fallbacks and status in lang_fallbacks[test_name]:
         return lang_fallbacks[test_name][status]
     
-    # Ultimate fallback
-    if language.lower() == "hindi":
-        return f"""【हिंदी】
-आपका {test_name} level {status.lower()} है - {value} (सामान्य: {normal_range})। कृपया अपने doctor से इस result के बारे में बात करें।
-
-【Transliteration】
-Aapka {test_name} level {status.lower()} hai - {value} (normal: {normal_range}). Kripya apne doctor se is result ke baare mein baat karein."""
-    elif language.lower() == "malayalam":
-        return f"""【മലയാളം】
-നിങ്ങളുടെ {test_name} level {status.lower()} ആണ് - {value} (സാധാരണ: {normal_range}). ദയവായി നിങ്ങളുടെ doctor-ഉമായി ഈ result പറ്റിയും സംസാരിക്കുക.
-
-【Transliteration】
-Ningalude {test_name} level {status.lower()} aanu - {value} (normal: {normal_range}). Dayavayi ningalude doctor-umaayi ee result pattiyum samsaarikkuka."""
-    else:
-        return f"Your {test_name} level is {status.lower()} at {value} (normal: {normal_range}). Please discuss this result with your doctor for proper interpretation and next steps."
+    # Ultimate fallback - generic message in requested language
+    fallback_messages = {
+        "hindi": f"【हिंदी】\nआपका {test_name} level {status.lower()} है - {value} (सामान्य: {normal_range})। कृपया अपने doctor से इस result के बारे में बात करें।\n\n【Transliteration】\nAapka {test_name} level {status.lower()} hai - {value} (normal: {normal_range}). Kripya apne doctor se is result ke baare mein baat karein.",
+        
+        "malayalam": f"【മലയാളം】\nനിങ്ങളുടെ {test_name} level {status.lower()} ആണ് - {value} (സാധാരണ: {normal_range}). ദയവായി നിങ്ങളുടെ doctor-ഉമായി ഈ result പറ്റിയും സംസാരിക്കുക.\n\n【Transliteration】\nNingalude {test_name} level {status.lower()} aanu - {value} (normal: {normal_range}). Dayavayi ningalude doctor-umaayi ee result pattiyum samsaarikkuka.",
+        
+        "tamil": f"【தமிழ்】\nஉங்கள் {test_name} level {status.lower()} உள்ளது - {value} (சாதாரண: {normal_range}). தயவுசெய்து உங்கள் doctor-உடன் இந்த result பற்றி பேசுங்கள்.\n\n【Transliteration】\nUngal {test_name} level {status.lower()} ulladu - {value} (normal: {normal_range}). Dayavuseythu ungal doctor-udan indha result pathi pesunga.",
+        
+        "telugu": f"【తెలుగు】\nమీ {test_name} level {status.lower()} ఉంది - {value} (సాధారణ: {normal_range}). దయచేసి మీ doctor తో ఈ result గురించి మాట్లాడండి.\n\n【Transliteration】\nMee {test_name} level {status.lower()} undi - {value} (normal: {normal_range}). Dayachesi mee doctor tho ee result gurinchi matladandi.",
+        
+        "kannada": f"【ಕನ್ನಡ】\nನಿಮ್ಮ {test_name} level {status.lower()} ಇದೆ - {value} (ಸಾಮಾನ್ಯ: {normal_range}). ದಯವಿಟ್ಟು ನಿಮ್ಮ doctor ಅವರೊಂದಿಗೆ ಈ result ಬಗ್ಗೆ ಮಾತನಾಡಿ.\n\n【Transliteration】\nNimma {test_name} level {status.lower()} ide - {value} (normal: {normal_range}). Dayavittu nimma doctor avarondige ee result bagge matnaadi.",
+        
+        "marathi": f"【मराठी】\nतुमचा {test_name} level {status.lower()} आहे - {value} (सामान्य: {normal_range}). कृपया तुमच्या doctor शी या result बद्दल बोला.\n\n【Transliteration】\nTumcha {test_name} level {status.lower()} aahe - {value} (normal: {normal_range}). Krupaya tumchya doctor shi ya result baddal bola.",
+        
+        "bengali": f"【বাংলা】\nআপনার {test_name} level {status.lower()} - {value} (স্বাভাবিক: {normal_range})। দয়া করে আপনার doctor এর সাথে এই result সম্পর্কে কথা বলুন।\n\n【Transliteration】\nApnar {test_name} level {status.lower()} - {value} (normal: {normal_range}). Doya kore apnar doctor er sathe ei result somporke kotha bolun.",
+        
+        "gujarati": f"【ગુજરાતી】\nતમારું {test_name} level {status.lower()} છે - {value} (સામાન્ય: {normal_range}). કૃપા કરીને તમારા doctor સાથે આ result વિશે વાત કરો.\n\n【Transliteration】\nTamaru {test_name} level {status.lower()} chhe - {value} (normal: {normal_range}). Krupa kareeney tamara doctor sathe aa result vishe vat karo.",
+        
+        "urdu": f"【اردو】\nآپ کا {test_name} level {status.lower()} ہے - {value} (معمول: {normal_range})۔ براہ کرم اپنے doctor سے اس result کے بارے میں بات کریں۔\n\n【Transliteration】\nAap ka {test_name} level {status.lower()} hai - {value} (normal: {normal_range}). Barah-e-karam apne doctor se is result ke baare mein baat karein.",
+        
+        "odia": f"【ଓଡ଼ିଆ】\nଆପଣଙ୍କର {test_name} level {status.lower()} ଅଛି - {value} (ସାଧାରଣ: {normal_range})। ଦୟାକରି ଆପଣଙ୍କ doctor ସହିତ ଏହି result ବିଷୟରେ କଥା ହୁଅନ୍ତୁ।\n\n【Transliteration】\nApanankara {test_name} level {status.lower()} achhi - {value} (normal: {normal_range}). Dayakari apananka doctor sahita ehi result bisayare katha huantu."
+    }
+    
+    return fallback_messages.get(language.lower(), f"Your {test_name} level is {status.lower()} at {value} (normal: {normal_range}). Please discuss this result with your doctor.")

@@ -133,7 +133,15 @@
             <select class="form-select" id="languageSelect">
                 <option value="english">English</option>
                 <option value="hindi">हिंदी (Hindi)</option>
+                <option value="bengali">বাংলা (Bengali)</option>
+                <option value="telugu">తెలుగు (Telugu)</option>
+                <option value="marathi">मराठी (Marathi)</option>
+                <option value="tamil">தமிழ் (Tamil)</option>
+                <option value="urdu">اردو (Urdu)</option>
+                <option value="gujarati">ગુજરાતી (Gujarati)</option>
+                <option value="kannada">ಕನ್ನಡ (Kannada)</option>
                 <option value="malayalam">മലയാളം (Malayalam)</option>
+                <option value="odia">ଓଡ଼ିଆ (Odia)</option>
             </select>
             
             <select class="form-select">
@@ -234,13 +242,21 @@ uploadBtn.addEventListener("click", async () => {
         const languageNames = {
             "english": "🇬🇧 English",
             "hindi": "🇮🇳 हिंदी",
-            "malayalam": "🇮🇳 മലയാളം"
+            "bengali": "🇮🇳 বাংলা",
+            "telugu": "🇮🇳 తెలుగు",
+            "marathi": "🇮🇳 मराठी",
+            "tamil": "🇮🇳 தமிழ்",
+            "urdu": "🇵🇰 اردو",
+            "gujarati": "🇮🇳 ગુજરાતી",
+            "kannada": "🇮🇳 ಕನ್ನಡ",
+            "malayalam": "🇮🇳 മലയാളം",
+            "odia": "🇮🇳 ଓଡ଼ିଆ"
         };
         languageBadge.textContent = `Explanations in: ${languageNames[selectedLanguage] || "English"}`;
 
         const abnormalValues = result.abnormal_values || {};
 
-        // Case 1: No abnormalities found
+        // ✅ Case 1: No abnormalities found
         if (Object.keys(abnormalValues).length === 0) {
             const successMessages = {
                 "english": {
@@ -257,6 +273,46 @@ uploadBtn.addEventListener("click", async () => {
                     title: "🎉 Valare Nannayi!",
                     message: "Ningalude ellaa test values-um normal range-il aanu.",
                     note: "Ippol follow-up action aavashyamilla."
+                },
+                "tamil": {
+                    title: "🎉 Romba Nannaagi!",
+                    message: "Ungal ellaa test values-um normal range-il ullana.",
+                    note: "Ippodhu follow-up action thevai illa."
+                },
+                "telugu": {
+                    title: "🎉 Chaala Baagundi!",
+                    message: "Mee anni test values normal range lo unnayi.",
+                    note: "Ippudu follow-up action avasaram ledu."
+                },
+                "kannada": {
+                    title: "🎉 Thumba Chennagi!",
+                    message: "Nimma ellaa test values normal range alli ide.",
+                    note: "Eega follow-up action aavashyaka illa."
+                },
+                "marathi": {
+                    title: "🎉 Khup Chhan!",
+                    message: "Tumchya sarvaa test values normal range madhe ahet.",
+                    note: "Aata follow-up action aavashyak naahi."
+                },
+                "bengali": {
+                    title: "🎉 Khub Bhalo!",
+                    message: "Apnar shob test values normal range-e achhe.",
+                    note: "Ekhon follow-up action proyojon nei."
+                },
+                "gujarati": {
+                    title: "🎉 Khub Saras!",
+                    message: "Tamara badha test values normal range ma chhe.",
+                    note: "Atyare follow-up action jarur nathi."
+                },
+                "urdu": {
+                    title: "🎉 Bahut Achha!",
+                    message: "Aap ki tamaam test values normal range mein hain.",
+                    note: "Is waqt follow-up action ki zaroorat nahi hai."
+                },
+                "odia": {
+                    title: "🎉 Bahut Bhala!",
+                    message: "Apananka sabu test values normal range re achhi.",
+                    note: "Ebekaare follow-up action darkar nahin."
                 }
             };
 
@@ -317,7 +373,15 @@ uploadBtn.addEventListener("click", async () => {
         const errorMessages = {
             "english": "⚠️ Something went wrong while analyzing the report. Please try again.",
             "hindi": "⚠️ Report analyze karte waqt kuch galat ho gaya. Kripya dobara try karein.",
-            "malayalam": "⚠️ Report analyze cheyyumpol entho prashnam undaayi. Dayavayi veendum try cheyyuka."
+            "malayalam": "⚠️ Report analyze cheyyumpol entho prashnam undaayi. Dayavayi veendum try cheyyuka.",
+            "tamil": "⚠️ Report analyze seyyum podhu sila piracchanai vandhadhu. Dayavu seidhu marupadi muyarchi seyyungal.",
+            "telugu": "⚠️ Report analyze chesthappudu konni samasyalu vachayi. Dayachesi maalli prayatninchandi.",
+            "kannada": "⚠️ Report analyze maaduvaga kashta aayithu. Dayavittu mathe prayatnisi.",
+            "marathi": "⚠️ Report analyze kartana kahi chukla. Krupaya punha prayatna kara.",
+            "bengali": "⚠️ Report analyze korte giye kichhu bhul hoyeche. Doya kore abar chesta korun.",
+            "gujarati": "⚠️ Report analyze karata samaye kuch bhul thai gayu. Krupa karine fari prayatna karo.",
+            "urdu": "⚠️ Report analyze karte waqt kuch galat ho gaya. Barah-e-karam dobara koshish karein.",
+            "odia": "⚠️ Report analyze kariba samaya kichhi bhul heigala. Dayakari punah prayasa karanta."
         };
         
         alert(errorMessages[selectedLanguage] || errorMessages["english"]);

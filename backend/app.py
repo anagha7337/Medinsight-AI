@@ -10,6 +10,7 @@ from ocr_utils import extract_text
 from report_parser import parse_report
 from range_checker import check_abnormal_values
 from ai_interpreter import interpret_abnormality
+from scan_interpreter import interpret_scan
 
 app = Flask(__name__)
 CORS(app)
@@ -24,7 +25,7 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 db_config = {
     'host': config('DB_HOST', default='localhost'),
     'user': config('DB_USER', default='root'),
-    'password': config('DB_PASSWORD'),  # Required - will raise error if not set
+    'password': config('DB_PASSWORD'),
     'database': config('DB_NAME', default='MEDINSIGHT_AI')
 }
 
@@ -73,7 +74,6 @@ def insert_medicine_to_database(drug_data):
     cursor = connection.cursor()
     openfda = drug_data.get('openfda', {})
     
-    # Helper function to safely get first element or join list
     def safe_get(data, key):
         value = data.get(key, [])
         if isinstance(value, list):
@@ -133,7 +133,6 @@ def fetch_from_openfda(medicine_name):
             if 'results' in data and len(data['results']) > 0:
                 return data['results'][0]
         
-        # If brand name search fails, try generic name search
         search_query = f'openfda.generic_name:"{medicine_name}"'
         params['search'] = search_query
         response = requests.get(base_url, params=params)
@@ -151,7 +150,7 @@ def fetch_from_openfda(medicine_name):
 
 def format_medicine_response(medicine_data):
     """Format medicine data for frontend"""
-    if 'openfda' in medicine_data:  # From API
+    if 'openfda' in medicine_data:
         openfda = medicine_data.get('openfda', {})
         brand_name = openfda.get('brand_name', ['N/A'])[0] if openfda.get('brand_name') else 'N/A'
         generic_name = openfda.get('generic_name', ['N/A'])[0] if openfda.get('generic_name') else 'N/A'
@@ -162,7 +161,7 @@ def format_medicine_response(medicine_data):
         warnings = medicine_data.get('warnings', ['N/A'])[0] if medicine_data.get('warnings') else 'N/A'
         side_effects = medicine_data.get('adverse_reactions', ['N/A'])[0] if medicine_data.get('adverse_reactions') else 'N/A'
         mechanism = medicine_data.get('mechanism_of_action', ['N/A'])[0] if medicine_data.get('mechanism_of_action') else 'N/A'
-    else:  # From database
+    else:
         brand_name = medicine_data.get('brand_name', 'N/A')
         generic_name = medicine_data.get('generic_name', 'N/A')
         manufacturer = medicine_data.get('manufacturer_name', 'N/A')
@@ -199,8 +198,10 @@ def upload_report():
         return jsonify({"error": "Empty filename"}), 400
 
     language = request.form.get("language", "english").lower()
+
+    supported_languages = ["english", "hindi", "malayalam", "tamil", "telugu", "kannada", "marathi", "bengali", "gujarati", "urdu", "odia"]
     
-    if language not in ["english", "hindi", "malayalam"]:
+    if language not in supported_languages:
         language = "english"
     
     print(f"\nSelected Language: {language.upper()}")
@@ -250,6 +251,75 @@ def upload_report():
         }), 500
 
 # ============================================================================
+# ROUTES - SCAN REPORT ANALYZER (NEW)
+# ============================================================================
+
+@app.route("/upload-scan", methods=["POST"])
+def upload_scan():
+    """Scan Report Analyzer endpoint - analyzes X-rays, CT scans, MRIs, etc."""
+    if "file" not in request.files:
+        return jsonify({"error": "No file sent"}), 400
+
+    file = request.files["file"]
+
+    if file.filename == "":
+        return jsonify({"error": "Empty filename"}), 400
+
+    # Validate file type
+    allowed_extensions = {'.jpg', '.jpeg', '.png', '.pdf'}
+    file_ext = os.path.splitext(file.filename)[1].lower()
+    
+    if file_ext not in allowed_extensions:
+        return jsonify({"error": "Invalid file type. Please upload JPG, JPEG, PNG, or PDF"}), 400
+
+    language = request.form.get("language", "english").lower()
+    
+    if language not in ["english", "hindi", "malayalam"]:
+        language = "english"
+    
+    print(f"\n📊 Scan Analysis Request - Language: {language.upper()}")
+
+    file_path = os.path.join(UPLOAD_FOLDER, file.filename)
+    file.save(file_path)
+
+    try:
+        print("\nStep 1: Analyzing scan image with AI...")
+        
+        # For PDF, we'd need to convert first page to image
+        # For now, assuming image files (JPG/JPEG/PNG)
+        if file_ext == '.pdf':
+            # TODO: Add PDF to image conversion if needed
+            return jsonify({
+                "error": "PDF support coming soon. Please upload JPG or PNG for now."
+            }), 400
+        
+        # Analyze the scan
+        result = interpret_scan(file_path, language)
+        
+        if result.get("success"):
+            print(f"\n✅ Scan analysis complete in {language.upper()}\n")
+            return jsonify({
+                "message": "Scan analyzed successfully",
+                "filename": file.filename,
+                "language": language,
+                "analysis": result.get("analysis")
+            })
+        else:
+            print(f"\n⚠️ Scan analysis failed\n")
+            return jsonify({
+                "error": "Failed to analyze scan",
+                "details": result.get("error", "Unknown error"),
+                "fallback_message": result.get("analysis")
+            }), 500
+
+    except Exception as e:
+        print(f"\n❌ Error during scan analysis: {str(e)}\n")
+        return jsonify({
+            "error": "Failed to analyze scan",
+            "details": str(e)
+        }), 500
+
+# ============================================================================
 # ROUTES - MEDICINE LOOKUP
 # ============================================================================
 
@@ -266,7 +336,6 @@ def search_medicine_api():
     
     print(f"\n🔍 API Request: Searching for {medicine_name}")
     
-    # Step 1: Check database
     db_result = search_in_database(medicine_name)
     
     if db_result:
@@ -277,13 +346,11 @@ def search_medicine_api():
             'data': format_medicine_response(db_result)
         })
     
-    # Step 2: Fetch from OpenFDA
     print("→ Fetching from OpenFDA...")
     api_result = fetch_from_openfda(medicine_name)
     
     if api_result:
         print("✓ Found in OpenFDA")
-        # Save to database
         insert_medicine_to_database(api_result)
         
         return jsonify({
@@ -304,15 +371,17 @@ def search_medicine_api():
 
 @app.route("/health", methods=["GET"])
 def health_check():
-    """Health check endpoint for both services"""
+    """Health check endpoint for all services"""
     return jsonify({
         "status": "healthy",
         "services": {
             "medical_report_analyzer": "active",
+            "scan_report_analyzer": "active",
             "medicine_lookup": "active"
         },
         "endpoints": {
             "report_analyzer": "/upload-report (POST)",
+            "scan_analyzer": "/upload-scan (POST)",
             "medicine_lookup": "/api/search-medicine (GET)"
         },
         "supported_languages": ["english", "hindi", "malayalam"]
@@ -327,11 +396,13 @@ if __name__ == "__main__":
     print("🏥 MEDINSIGHT AI - Backend Server")
     print("="*60)
     print("\n📋 Available Services:")
-    print("   1. Medical Report Analyzer")
-    print("   2. Medicine Lookup Dictionary")
+    print("   1. Medical Report Analyzer (Blood tests, Lab reports)")
+    print("   2. Scan Report Analyzer (X-rays, CT, MRI)")
+    print("   3. Medicine Lookup Dictionary")
     print("\n🌐 Server starting on http://127.0.0.1:5000")
     print("\n📡 Endpoints:")
-    print("   • POST /upload-report - Medical report analysis")
+    print("   • POST /upload-report - Lab report analysis")
+    print("   • POST /upload-scan - Scan image analysis")
     print("   • GET  /api/search-medicine?name=<medicine> - Medicine lookup")
     print("   • GET  /health - Health check")
     print("\n⚡ Press CTRL+C to stop")
