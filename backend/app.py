@@ -18,10 +18,8 @@ CORS(app)
 UPLOAD_FOLDER = "uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-# ============================================================================
-# DATABASE CONFIGURATION (Medicine Lookup)
-# ============================================================================
 
+# DATABASE CONFIGURATION (Medicine Lookup)
 db_config = {
     'host': config('DB_HOST', default='localhost'),
     'user': config('DB_USER', default='root'),
@@ -182,9 +180,7 @@ def format_medicine_response(medicine_data):
         'mechanism_of_action': mechanism
     }
 
-# ============================================================================
 # ROUTES - MEDICAL REPORT ANALYZER
-# ============================================================================
 
 @app.route("/upload-report", methods=["POST"])
 def upload_report():
@@ -249,14 +245,13 @@ def upload_report():
             "error": "Failed to analyze report",
             "details": str(e)
         }), 500
+    
 
-# ============================================================================
-# ROUTES - SCAN REPORT ANALYZER (NEW)
-# ============================================================================
+# ROUTES - SCAN REPORT ANALYZER
 
 @app.route("/upload-scan", methods=["POST"])
 def upload_scan():
-    """Scan Report Analyzer endpoint - analyzes X-rays, CT scans, MRIs, etc."""
+    """Scan Report Analyzer endpoint"""
     if "file" not in request.files:
         return jsonify({"error": "No file sent"}), 400
 
@@ -265,7 +260,6 @@ def upload_scan():
     if file.filename == "":
         return jsonify({"error": "Empty filename"}), 400
 
-    # Validate file type
     allowed_extensions = {'.jpg', '.jpeg', '.png', '.pdf'}
     file_ext = os.path.splitext(file.filename)[1].lower()
     
@@ -285,10 +279,7 @@ def upload_scan():
     try:
         print("\nStep 1: Analyzing scan image with AI...")
         
-        # For PDF, we'd need to convert first page to image
-        # For now, assuming image files (JPG/JPEG/PNG)
         if file_ext == '.pdf':
-            # TODO: Add PDF to image conversion if needed
             return jsonify({
                 "error": "PDF support coming soon. Please upload JPG or PNG for now."
             }), 400
@@ -318,10 +309,9 @@ def upload_scan():
             "error": "Failed to analyze scan",
             "details": str(e)
         }), 500
+    
 
-# ============================================================================
 # ROUTES - MEDICINE LOOKUP
-# ============================================================================
 
 @app.route('/api/search-medicine', methods=['GET'])
 def search_medicine_api():
@@ -364,10 +354,10 @@ def search_medicine_api():
             'success': False,
             'message': f'Medicine "{medicine_name}" not found'
         }), 404
+    
 
-# ============================================================================
+
 # HEALTH CHECK
-# ============================================================================
 
 @app.route("/health", methods=["GET"])
 def health_check():
@@ -387,9 +377,8 @@ def health_check():
         "supported_languages": ["english", "hindi", "malayalam"]
     })
 
-# ============================================================================
+
 # MAIN
-# ============================================================================
 
 if __name__ == "__main__":
     print("\n" + "="*60)

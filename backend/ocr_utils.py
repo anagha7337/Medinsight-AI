@@ -46,7 +46,7 @@ def extract_text_from_image(image_path):
 
 
 
-# ---------- TEXT-BASED PDF OCR ----------
+# TEXT-BASED PDF OCR 
 def extract_text_from_pdf_text(pdf_path):
     full_text = ""
 
@@ -68,7 +68,7 @@ def extract_text_from_pdf_text(pdf_path):
     return full_text
 
 
-# ---------- SCANNED PDF OCR ----------
+# SCANNED PDF OCR
 def extract_text_from_pdf_scanned(pdf_path):
     full_text = ""
 
@@ -90,7 +90,7 @@ def extract_text_from_pdf_scanned(pdf_path):
     return full_text
 
 
-# ---------- SMART OCR SELECTOR ----------
+# SMART OCR SELECTOR
 def extract_text(file_path):
     ext = os.path.splitext(file_path)[1].lower()
 
@@ -100,7 +100,6 @@ def extract_text(file_path):
     elif ext == ".pdf":
         text = extract_text_from_pdf_text(file_path)
 
-        # If text is too small, assume scanned PDF
         if len(text.strip()) < 50:
             return extract_text_from_pdf_scanned(file_path)
 

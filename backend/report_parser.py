@@ -1,6 +1,6 @@
 import re
 
-# ---------------- NORMALIZATION HELPERS ---------------- #
+#  NORMALIZATION HELPERS  #
 
 def normalize_plain(value, unit=None):
     return float(value)
@@ -48,19 +48,16 @@ def normalize_hba1c(value, unit=None):
 def normalize_glucose(value, unit=None):
     """Blood glucose normalization"""
     value = float(value)
-    # If value is in mmol/L (typical range 4-8), convert to mg/dL
     if unit and ("mmol" in unit.lower() or "mol" in unit.lower()):
         return value * 18  # 1 mmol/L = 18 mg/dL
-    # If value seems to be in mmol/L based on range
     if value < 20:
         return value * 18
     return value
 
-# ---------------- MAIN PARSER ---------------- #
+# MAIN PARSER  #
 
 def parse_report(text):
     results = {}
-    # Keep original case for pattern matching, convert later
     text_original = text
     text_lower = text.lower()
 
@@ -69,7 +66,7 @@ def parse_report(text):
     print("=" * 50)
 
     patterns = {
-        # HEMOGLOBIN - All variations
+        # HEMOGLOBIN
         "Hemoglobin": {
             "regex": r"(?:hemoglobin|haemoglobin|hgb|hb|h\.b\.|hemo|haemo)[\s:]*(?:\(hb\))?[\s:]*(?:count)?[\s:]*(?:result)?[\s:]*([\d\.]+)",
             "normalizer": normalize_plain
@@ -311,7 +308,6 @@ def parse_report(text):
     }
 
     for test, config in patterns.items():
-        # Use case-insensitive regex on lowercase text
         match = re.search(config["regex"], text_lower, re.IGNORECASE | re.MULTILINE)
 
         if not match:

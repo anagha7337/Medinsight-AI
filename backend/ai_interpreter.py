@@ -1,10 +1,8 @@
 import os
 from groq import Groq
 
-# ⚙️ Initialize Groq client
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
-# Validate API key exists
 if not GROQ_API_KEY or GROQ_API_KEY == "YOUR_GROQ_API_KEY_HERE":
     print("\n" + "=" * 60)
     print("❌ ERROR: GROQ_API_KEY not configured!")
@@ -25,7 +23,6 @@ if not GROQ_API_KEY or GROQ_API_KEY == "YOUR_GROQ_API_KEY_HERE":
 client = Groq(api_key=GROQ_API_KEY)
 
 def build_prompt(test_name, value, normal_range, status, language="english"):
-    """Build a medical explanation prompt for the AI with language support"""
     
     language_instructions = {
         "english": """Please explain in simple, friendly English language.""",
@@ -105,21 +102,21 @@ Example: "ଆପଣଙ୍କର hemoglobin..." then "Apanankara hemoglobin..."
 
 Explain in 4-5 sentences:
 1. What this test measures (1 sentence)
-2. What {status.lower()} means (reassuring, not alarming)
-3. Common everyday causes (lifestyle, diet)
-4. What they might feel
-5. Simple next step (consult doctor)
+2. What {value} and {status.lower()} means (reassuring, not alarming)
+3. Biological significance of the test
+4. What happens biologically when the test is {status.lower()}
+5. Common everyday causes (lifestyle, diet)
+6. What they might feel
+7. Simple next step (consult doctor)
 
 Guidelines:
 - Keep medical terms in English (hemoglobin, WBC, etc.)
 - Use everyday language
 - Be reassuring and calm
-- 4-5 sentences total
+- 6-7 sentences total
 """
 
-def interpret_abnormality(test_name, value, normal_range, status, language="english"):
-    """Generate AI explanation for abnormal blood test value using Groq"""
-    
+def interpret_abnormality(test_name, value, normal_range, status, language="english"):    
     try:
         chat_completion = client.chat.completions.create(
             messages=[
@@ -134,7 +131,7 @@ def interpret_abnormality(test_name, value, normal_range, status, language="engl
             ],
             model="llama-3.3-70b-versatile",
             temperature=0.3,
-            max_tokens=600,
+            max_tokens=1000,  
             top_p=0.9
         )
         
@@ -146,9 +143,7 @@ def interpret_abnormality(test_name, value, normal_range, status, language="engl
         return get_fallback_explanation(test_name, value, normal_range, status, language)
 
 
-def get_fallback_explanation(test_name, value, normal_range, status, language="english"):
-    """Provide fallback explanations if API fails"""
-    
+def get_fallback_explanation(test_name, value, normal_range, status, language="english"):    
     fallback_explanations = {
         "english": {
             "Hemoglobin": {
@@ -248,13 +243,11 @@ Apanankara hemoglobin level ({value}) normal tharu kam achhi. Hemoglobin apanank
         }
     }
     
-    # Get fallback for requested language
     lang_fallbacks = fallback_explanations.get(language.lower(), fallback_explanations["english"])
     
     if test_name in lang_fallbacks and status in lang_fallbacks[test_name]:
         return lang_fallbacks[test_name][status]
     
-    # Ultimate fallback - generic message in requested language
     fallback_messages = {
         "hindi": f"【हिंदी】\nआपका {test_name} level {status.lower()} है - {value} (सामान्य: {normal_range})। कृपया अपने doctor से इस result के बारे में बात करें।\n\n【Transliteration】\nAapka {test_name} level {status.lower()} hai - {value} (normal: {normal_range}). Kripya apne doctor se is result ke baare mein baat karein.",
         

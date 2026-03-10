@@ -13,8 +13,6 @@ if not GEMINI_API_KEY:
 genai.configure(api_key=GEMINI_API_KEY)
 
 def build_scan_prompt(language="english"):
-    """Build prompt for scan analysis with language support"""
-    
     language_instructions = {
         "english": """Please provide your analysis in simple, friendly English language.""",
         
@@ -77,29 +75,16 @@ Your task is to:
 Remember: You're helping someone understand their medical scan, not replacing their doctor's expertise."""
 
 def interpret_scan(image_path, language="english"):
-    """
-    Analyze medical scan image using Google Gemini Vision API
-    
-    Args:
-        image_path (str): Path to the scan image file
-        language (str): Language for explanation ("english", "hindi", "malayalam")
-    
-    Returns:
-        dict: Contains scan_type, body_part, findings, and explanation
-    """
     
     try:
-        # Open the image
         img = Image.open(image_path)
         
-        # Try different Gemini models in order of preference
-        # Using full model paths with correct API version
         model_names = [
-            'models/gemini-3.1-pro-preview',
-            'models/gemini-3-pro-preview',
-            'models/gemini-2.5-pro',
+            "models/gemini-2.5-flash",
+            "models/gemini-2.5-pro",
+            "models/gemini-2.0-flash"
         ]
-        
+
         analysis = None
         last_error = None
         
@@ -107,7 +92,6 @@ def interpret_scan(image_path, language="english"):
             try:
                 print(f"Trying model: {model_name}")
                 
-                # Use generation_config for better control
                 generation_config = {
                     "temperature": 0.4,
                     "top_p": 0.95,
@@ -120,14 +104,12 @@ def interpret_scan(image_path, language="english"):
                     generation_config=generation_config
                 )
                 
-                # Generate content with image and prompt
                 response = model.generate_content([
                     build_scan_prompt(language),
                     img
                 ])
                 
-                # Extract the generated analysis
-                analysis = response.text.strip()
+                analysis = response.text if hasattr(response, "text") else ""
                 
                 if analysis:
                     print(f"✓ Success with model: {model_name}")
@@ -142,7 +124,6 @@ def interpret_scan(image_path, language="english"):
                 print(f"  ✗ Failed with {model_name}: {last_error[:100]}")
                 continue
         
-        # If all models failed
         raise Exception(f"All models failed. Last error: {last_error}")
     
     except Exception as e:
@@ -161,7 +142,6 @@ def interpret_scan(image_path, language="english"):
         return get_fallback_scan_explanation(language)
 
 def get_fallback_scan_explanation(language="english"):
-    """Provide fallback explanation if API fails"""
     
     fallback_messages = {
         "english": """I'm unable to analyze this scan image at the moment due to a technical issue. 
