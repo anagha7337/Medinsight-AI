@@ -1,11 +1,7 @@
 def check_abnormal_values(parsed_values):
-    """
-    Check parsed values against normal ranges for comprehensive blood tests
-    Including: CBC, Diabetes, Lipid Profile, Liver, Kidney, Thyroid, Vitamins, Electrolytes
-    """
     
     normal_ranges = {
-        # ========== COMPLETE BLOOD COUNT (CBC) ==========
+        # COMPLETE BLOOD COUNT (CBC)
         "Hemoglobin": (13.0, 17.0),        # g/dL (Male: 13.5-17.5, Female: 12.0-15.5)
         "RBC": (4.2, 5.9),                 # million/µL
         "WBC": (4000, 11000),              # /µL
@@ -26,39 +22,39 @@ def check_abnormal_values(parsed_values):
         
         "ESR": (0, 20),                    # mm/hr (Male: 0-15, Female: 0-20)
         
-        # ========== DIABETES / GLUCOSE TESTS ==========
+        # DIABETES / GLUCOSE TESTS 
         "Blood Sugar": (70, 140),          # mg/dL (Fasting: 70-100, Random: <140)
         "HbA1c": (4.0, 5.6),              # % (5.7-6.4: Prediabetes, ≥6.5: Diabetes)
         
-        # ========== LIPID PROFILE ==========
+        #  LIPID PROFILE 
         "Total Cholesterol": (0, 200),     # mg/dL (Desirable: <200, Borderline: 200-239, High: ≥240)
         "Triglycerides": (0, 150),         # mg/dL (Normal: <150, Borderline: 150-199, High: ≥200)
         "HDL": (40, 200),                  # mg/dL (Low risk: >60, High risk: <40)
         "LDL": (0, 100),                   # mg/dL (Optimal: <100, High: >160)
         "VLDL": (2, 30),                   # mg/dL
         
-        # ========== LIVER FUNCTION TESTS (LFT) ==========
+        # LIVER FUNCTION TESTS (LFT)
         "SGPT": (0, 40),                   # U/L (ALT)
         "SGOT": (0, 40),                   # U/L (AST)
         "Total Bilirubin": (0.3, 1.2),     # mg/dL
         "Albumin": (3.5, 5.5),             # g/dL
         "Total Protein": (6.0, 8.3),       # g/dL
         
-        # ========== KIDNEY FUNCTION TESTS (KFT) ==========
+        # KIDNEY FUNCTION TESTS (KFT)
         "Creatinine": (0.6, 1.2),          # mg/dL (Male: 0.7-1.3, Female: 0.6-1.1)
         "Urea": (15, 40),                  # mg/dL
         "Uric Acid": (3.5, 7.2),           # mg/dL (Male: 3.5-7.2, Female: 2.6-6.0)
         
-        # ========== THYROID FUNCTION TESTS ==========
+        #  THYROID FUNCTION TESTS
         "TSH": (0.4, 4.5),                 # µIU/mL
         "T3": (80, 200),                   # ng/dL
         "T4": (4.5, 12.0),                 # µg/dL
         
-        # ========== VITAMINS ==========
+        # VITAMINS 
         "Vitamin D": (30, 100),            # ng/mL (Deficiency: <20, Insufficiency: 20-30)
         "Vitamin B12": (200, 900),         # pg/mL (Deficiency: <200)
         
-        # ========== ELECTROLYTES ==========
+        #  ELECTROLYTES
         "Sodium": (135, 145),              # mEq/L
         "Potassium": (3.5, 5.0),           # mEq/L
         "Chloride": (96, 106),             # mEq/L

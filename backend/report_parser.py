@@ -42,7 +42,6 @@ def normalize_rbc(value, unit=None):
     return value
 
 def normalize_hba1c(value, unit=None):
-    """HbA1c is already in percentage"""
     return float(value)
 
 def normalize_glucose(value, unit=None):

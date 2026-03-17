@@ -525,6 +525,8 @@ footer {
     padding: 20px;
     border-radius: 12px;
     background: #f9fafb;
+    height: auto;
+    overflow: visible;
 }
 
 .abnormal-item {
@@ -550,6 +552,8 @@ footer {
     padding: 15px;
     border-radius: 8px;
     line-height: 1.6;
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
 }
 
 
