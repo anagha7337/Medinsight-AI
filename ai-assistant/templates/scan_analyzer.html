@@ -4,16 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Scan Report Analyzer - Medinsight AI</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="../static/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@200..800&display=swap" rel="stylesheet">
 </head>
 <body>
 
 <header>
-    <img class="logo" src="assets/medinsight ai logo nobg 1.png" alt="Medinsight AI Logo">
+    <img class="logo" src="../static/assets/medinsight ai logo nobg 1.png" alt="Medinsight AI Logo">
     <div class="profile-wrapper">
-        <img class="dp" src="assets/account 1.png" alt="Profile" id="profileBtn">
+        <img class="dp" src="../static/assets/account 1.png" alt="Profile" id="profileBtn">
         <div class="profile-popup" id="profilePopup">
             <p class="profile-name">Anagha</p>
             <p class="profile-username">@anagha_k</p>
@@ -21,6 +21,7 @@
         </div>
     </div>
 </header>
+<div style="height: 50px"></div>
 
 <section class="analyzer-section">
     <h1 class="page-title">Scan Report Analyzer</h1>
@@ -28,31 +29,46 @@
     
     <div class="analyzer-container">
         <div class="upload-area" id="uploadArea">
-            <img src="assets/x-ray_icon.png" alt="" class="upload-icon">
-            <p class="upload-text">Upload scan report in jpg, jpeg or pdf format here</p>
-            <input type="file" id="scanFile" accept=".jpg,.jpeg,.pdf" hidden>
+            <img src="../static/assets/x-ray_icon.png" alt="" class="upload-icon">
+            <p class="upload-text">Upload scan report in jpg, jpeg or png format here</p>
+            <input type="file" id="scanFile" accept=".jpg,.jpeg,.png" hidden>
             <button class="upload-btn" onclick="document.getElementById('scanFile').click()">Upload</button>
         </div>
         
         <div class="form-row">
-            <select class="form-select">
-                <option value="">Select Language</option>
+            <select class="form-select" id="languageSelect">
                 <option value="english">English</option>
                 <option value="hindi">Hindi</option>
                 <option value="malayalam">Malayalam</option>
             </select>
             
-            <select class="form-select">
-                <option value="">Select Patient</option>
+            <select class="form-select" id="patientSelect">
+                <option value="">Select Patient (Optional)</option>
                 <option value="patient1">Patient 1</option>
                 <option value="patient2">Patient 2</option>
             </select>
         </div>
         
-        <label class="checkbox-label">
-            <input type="checkbox">
+        <!--<label class="checkbox-label">
+            <input type="checkbox" id="consentCheckbox">
             I agree that this report may be used for trend tracking and health history analysis.
-        </label>
+        </label>-->
+        
+        <button class="analyze-btn" id="analyzeBtn" disabled>Analyze Scan</button>
+    </div>
+    
+    <!-- Results Section -->
+    <div class="results-section" id="resultsSection" style="display: none;">
+        <h2>📊 Analysis Results</h2>
+        <div class="analysis-card">
+            <div id="analysisContent"></div>
+        </div>
+    </div>
+    
+    <!-- Loading Indicator -->
+    <div class="loading-overlay" id="loadingOverlay" style="display: none;">
+        <div class="loading-spinner"></div>
+        <p>Analyzing your scan... This may take a moment.</p>
     </div>
 </section>
 
@@ -72,7 +88,17 @@
 <script>
 const profileBtn = document.getElementById("profileBtn");
 const profilePopup = document.getElementById("profilePopup");
+const scanFileInput = document.getElementById('scanFile');
+const analyzeBtn = document.getElementById('analyzeBtn');
+const uploadText = document.querySelector('.upload-text');
+const loadingOverlay = document.getElementById('loadingOverlay');
+const resultsSection = document.getElementById('resultsSection');
+const analysisContent = document.getElementById('analysisContent');
+const consentCheckbox = document.getElementById('consentCheckbox');
 
+let selectedFile = null;
+
+// Profile popup toggle
 profileBtn.addEventListener("click", (e) => {
     e.stopPropagation();
     profilePopup.classList.toggle("show");
@@ -82,12 +108,228 @@ document.addEventListener("click", () => {
     profilePopup.classList.remove("show");
 });
 
-document.getElementById('scanFile').addEventListener('change', function(e) {
+// File selection
+scanFileInput.addEventListener('change', function(e) {
     if (e.target.files.length > 0) {
-        document.querySelector('.upload-text').textContent = 'File: ' + e.target.files[0].name;
+        selectedFile = e.target.files[0];
+        uploadText.textContent = '✓ File: ' + selectedFile.name;
+        uploadText.style.color = '#22c55e';
+        checkCanAnalyze();
     }
 });
+
+// Check if analyze button should be enabled
+function checkCanAnalyze() {
+    if (selectedFile) {
+        analyzeBtn.disabled = false;
+        analyzeBtn.style.opacity = '1';
+        analyzeBtn.style.cursor = 'pointer';
+    } else {
+        analyzeBtn.disabled = true;
+        analyzeBtn.style.opacity = '0.5';
+        analyzeBtn.style.cursor = 'not-allowed';
+    }
+}
+
+// No need for checkbox event listener anymore
+
+// Analyze scan
+analyzeBtn.addEventListener('click', async function() {
+    if (!selectedFile) {
+        alert('Please upload a scan file first');
+        return;
+    }
+    
+    const language = document.getElementById('languageSelect').value;
+    
+    // Prepare form data
+    const formData = new FormData();
+    formData.append('file', selectedFile);
+    formData.append('language', language);
+    
+    // Show loading
+    loadingOverlay.style.display = 'flex';
+    resultsSection.style.display = 'none';
+    analyzeBtn.disabled = true;
+    
+    try {
+        const response = await fetch('http://localhost:5000/upload-scan', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            // Display results
+            displayResults(data);
+        } else {
+            alert(data.error || 'Failed to analyze scan. Please try again.');
+            if (data.fallback_message) {
+                displayResults({
+                    analysis: data.fallback_message,
+                    language: language,
+                    filename: selectedFile.name
+                });
+            }
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error connecting to server. Please make sure the backend is running.');
+    } finally {
+        loadingOverlay.style.display = 'none';
+        analyzeBtn.disabled = false;
+    }
+});
+
+function displayResults(data) {
+    // Format the analysis text
+    let formattedAnalysis = data.analysis || 'No analysis available';
+    
+    // Replace special formatting markers
+    formattedAnalysis = formattedAnalysis
+        .replace(/【हिंदी】/g, '<h3>🇮🇳 Hindi Script</h3>')
+        .replace(/【Transliteration】/g, '<h3>🔤 Hinglish (Roman Script)</h3>')
+        .replace(/【മലയാളം】/g, '<h3>🇮🇳 Malayalam Script</h3>')
+        .replace(/【Transliteration】/g, '<h3>🔤 Manglish (Roman Script)</h3>')
+        .replace(/\n\n/g, '</p><p>')
+        .replace(/\n/g, '<br>');
+    
+    analysisContent.innerHTML = `
+        <div class="result-header">
+            <p><strong>📄 File:</strong> ${data.filename}</p>
+            <p><strong>🌐 Language:</strong> ${data.language.charAt(0).toUpperCase() + data.language.slice(1)}</p>
+        </div>
+        <div class="analysis-text">
+            <p>${formattedAnalysis}</p>
+        </div>
+        <div class="disclaimer">
+            <p><strong>⚠️ Important:</strong> This is an AI-generated analysis for educational purposes only. Always consult with your doctor or radiologist for professional medical interpretation of scan results.</p>
+        </div>
+    `;
+    
+    resultsSection.style.display = 'block';
+    resultsSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
 </script>
+
+<style>
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.loading-spinner {
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #4f46e5;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 1s linear infinite;
+    margin-bottom: 20px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loading-overlay p {
+    color: white;
+    font-size: 18px;
+}
+
+.analyze-btn {
+    width: 100%;
+    padding: 15px;
+    background: #4f46e5;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 20px;
+    transition: all 0.3s ease;
+}
+
+.analyze-btn:hover:not(:disabled) {
+    background: #4338ca;
+}
+
+.analyze-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.results-section {
+    margin-top: 40px;
+    padding: 30px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.results-section h2 {
+    color: #1e293b;
+    margin-bottom: 20px;
+}
+
+.analysis-card {
+    background: #f8fafc;
+    padding: 25px;
+    border-radius: 8px;
+    border-left: 4px solid #4f46e5;
+}
+
+.result-header {
+    display: flex;
+    gap: 30px;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.result-header p {
+    margin: 0;
+    color: #64748b;
+}
+
+.analysis-text {
+    line-height: 1.8;
+    color: #334155;
+    margin-bottom: 20px;
+}
+
+.analysis-text h3 {
+    color: #4f46e5;
+    margin-top: 20px;
+    margin-bottom: 10px;
+}
+
+.disclaimer {
+    background: #fef3c7;
+    padding: 15px;
+    border-radius: 6px;
+    border-left: 4px solid #f59e0b;
+    margin-top: 20px;
+}
+
+.disclaimer p {
+    margin: 0;
+    color: #92400e;
+    font-size: 14px;
+}
+</style>
 
 </body>
 </html>

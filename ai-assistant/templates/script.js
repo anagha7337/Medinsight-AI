@@ -29,5 +29,7 @@ function handleLogin() {
     }
 }
 
-// Dropdown/Feature constraints could be added here
-// e.g., enabling Upload button only when Patient and Language are picked.
+function goToPage(page) {
+    window.location.href = page;
+}
+

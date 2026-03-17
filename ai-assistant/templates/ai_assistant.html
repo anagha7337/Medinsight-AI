@@ -5,16 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Health Query Assistant - Medinsight AI</title>
 
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="../static/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
 
 <header>
-    <img class="logo" src="{{ url_for('static', filename='assets/medinsight ai logo nobg 1.png') }}" alt="Medinsight AI Logo">
+    <img class="logo" src="../static/assets/medinsight ai logo nobg 1.png" alt="Medinsight AI Logo">
 
     <div class="profile-wrapper">
-        <img class="dp" src="{{ url_for('static', filename='assets/account 1.png') }}" alt="Profile" id="profileBtn">
+        <img class="dp" src="../static/assets/account 1.png" alt="Profile" id="profileBtn">
 
         <div class="profile-popup" id="profilePopup">
             <p class="profile-name">Anagha</p>
@@ -23,6 +23,7 @@
         </div>
     </div>
 </header>
+
 
 <section class="chat-section">
     <h1 class="page-title">AI Health Query Assistant</h1>
@@ -53,13 +54,13 @@
         </div>
 
         <div class="chat-input-wrapper">
-            <input 
-                type="text" 
-                class="chat-input" 
-                id="chatInput" 
+            <textarea
+                class="chat-input"
+                id="chatInput"
                 placeholder="Ask anything about health..."
+                rows="1"
                 autocomplete="off"
-            >
+            ></textarea>
             <button class="chat-send-btn" id="sendBtn">
                 <span class="btn-text">Send</span>
                 <span class="btn-icon">→</span>
@@ -67,7 +68,6 @@
         </div>
     </div>
 
-    <!-- Clear Chat Button -->
     <div class="chat-actions">
         <button class="clear-chat-btn" id="clearChatBtn" style="display: none;">
             🗑️ Clear Chat
@@ -77,12 +77,18 @@
 
 <footer>
     <div class="page-links">
-        <a href="#">About us</a>
-        <a href="#">Ethical and Medical Disclaimer</a>
-        <a href="#">Terms and Conditions</a>
-        <a href="#">Contact / Support</a>
+        <a href="about_us.html">About us</a>
+        <a href="ethics.html">Ethical and Medical Disclaimer</a>
+        <a href="terms.html">Terms and Conditions</a>
+        <a href="contact.html">Contact / Support</a>
     </div>
+
+    <p class="copyright">
+        2026 Health Companion | Academic Mini Project<br>
+        Built for educational and research purposes only
+    </p>
 </footer>
+
 
 <script>
 // Profile dropdown
@@ -108,7 +114,7 @@ const suggestions = document.getElementById('suggestions');
 // Send message on button click
 sendBtn.addEventListener('click', () => sendMessage());
 
-// Send message on Enter key
+// Send message on Enter key (Shift+Enter for newline)
 chatInput.addEventListener('keypress', function(e) {
     if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
@@ -116,13 +122,13 @@ chatInput.addEventListener('keypress', function(e) {
     }
 });
 
-// Auto-resize input as user types
+// Auto-resize textarea as user types
 chatInput.addEventListener('input', function() {
     this.style.height = 'auto';
     this.style.height = Math.min(this.scrollHeight, 120) + 'px';
 });
 
-// Clear chat functionality
+// Clear chat
 clearChatBtn.addEventListener('click', () => {
     if (confirm('Are you sure you want to clear the chat history?')) {
         chatMessages.innerHTML = `
@@ -140,41 +146,27 @@ clearChatBtn.addEventListener('click', () => {
 // Format response with markdown-like syntax
 function formatResponse(text) {
     return text
-        // Bold text
         .replace(/\*\*\s*(.*?)\s*\*\*/g, "<strong>$1</strong>")
-        // Bullet points
         .replace(/^- (.+)$/gm, "<li>$1</li>")
-        // Wrap lists
         .replace(/(<li>.*<\/li>)/s, "<ul>$1</ul>")
-        // Line breaks
         .replace(/\n/g, "<br>");
 }
 
-// Smooth typing animation - letter by letter
+// Smooth typing animation
 function typeText(element, formattedHTML, plainText, speed = 15) {
     let charIndex = 0;
     element.innerHTML = "";
     element.classList.add('typing');
 
-    // Create a temporary container to parse HTML
-    const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = formattedHTML;
-
     function typeNextChar() {
         if (charIndex < plainText.length) {
-            // Calculate how much of the formatted HTML to show
-            let currentPlainText = plainText.substring(0, charIndex + 1);
-            
-            // Find corresponding position in formatted HTML
-            let formattedSoFar = '';
             let plainSoFar = '';
+            let formattedSoFar = '';
             let htmlIndex = 0;
-            
+
             while (plainSoFar.length < charIndex + 1 && htmlIndex < formattedHTML.length) {
                 const char = formattedHTML[htmlIndex];
-                
                 if (char === '<') {
-                    // Skip HTML tags
                     const tagEnd = formattedHTML.indexOf('>', htmlIndex);
                     if (tagEnd !== -1) {
                         formattedSoFar += formattedHTML.substring(htmlIndex, tagEnd + 1);
@@ -186,16 +178,12 @@ function typeText(element, formattedHTML, plainText, speed = 15) {
                     htmlIndex++;
                 }
             }
-            
+
             element.innerHTML = formattedSoFar;
             charIndex++;
-            
-            // Auto-scroll as typing
             chatMessages.scrollTop = chatMessages.scrollHeight;
-            
             setTimeout(typeNextChar, speed);
         } else {
-            // Typing complete
             element.innerHTML = formattedHTML;
             element.classList.remove('typing');
             addCopyButton(element, plainText);
@@ -206,32 +194,31 @@ function typeText(element, formattedHTML, plainText, speed = 15) {
     typeNextChar();
 }
 
-// Add copy button to AI messages (like Claude's interface)
+// Add copy button to AI messages
 function addCopyButton(messageElement, textContent) {
     const copyBtn = document.createElement("button");
     copyBtn.className = "copy-btn";
     copyBtn.innerHTML = `
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
             <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
         </svg>
     `;
     copyBtn.title = "Copy to clipboard";
-    
+
     copyBtn.onclick = () => {
         navigator.clipboard.writeText(textContent).then(() => {
             copyBtn.innerHTML = `
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <polyline points="20 6 9 17 4 12"></polyline>
                 </svg>
             `;
             copyBtn.classList.add('copied');
-            
             setTimeout(() => {
                 copyBtn.innerHTML = `
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2 2v1"></path>
                     </svg>
                 `;
                 copyBtn.classList.remove('copied');
@@ -239,18 +226,15 @@ function addCopyButton(messageElement, textContent) {
         });
     };
 
-    // Create button container at the bottom
     const btnContainer = document.createElement("div");
     btnContainer.className = "message-actions";
     btnContainer.appendChild(copyBtn);
-    
     messageElement.parentElement.appendChild(btnContainer);
 }
 
 // Main send message function
 function sendMessage(messageFromChip = null) {
     const message = messageFromChip || chatInput.value.trim();
-
     if (!message) return;
 
     // Hide suggestions after first message
@@ -267,19 +251,15 @@ function sendMessage(messageFromChip = null) {
     // Add user message
     const userMsg = document.createElement('div');
     userMsg.className = 'chat-message user';
-    userMsg.innerHTML = `
-        <div class="message-content">${escapeHtml(message)}</div>
-    `;
+    userMsg.innerHTML = `<div class="message-content">${escapeHtml(message)}</div>`;
     chatMessages.appendChild(userMsg);
 
     // Clear input
     chatInput.value = '';
     chatInput.style.height = 'auto';
-
-    // Scroll to bottom
     chatMessages.scrollTop = chatMessages.scrollHeight;
 
-    // Disable send button while fetching AI response
+    // Disable send button while waiting
     sendBtn.disabled = true;
     sendBtn.innerHTML = `
         <span class="btn-text">Thinking</span>
@@ -288,7 +268,7 @@ function sendMessage(messageFromChip = null) {
         </span>
     `;
 
-    // Add AI message with loading state
+    // Add AI message with typing indicator
     const aiMsg = document.createElement('div');
     aiMsg.className = 'chat-message ai';
     aiMsg.innerHTML = `
@@ -302,37 +282,24 @@ function sendMessage(messageFromChip = null) {
     // Fetch AI response
     fetch("/get", {
         method: "POST",
-        headers: {
-            "Content-Type": "application/x-www-form-urlencoded"
-        },
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: "msg=" + encodeURIComponent(message)
     })
     .then(response => response.text())
     .then(data => {
-        // Get plain text for typing
-        const plainText = data;
-        
-        // Get formatted HTML
         const formattedHTML = formatResponse(data);
-        
-        // Replace loading indicator with empty content div
         aiMsg.innerHTML = '<div class="message-content"></div>';
         const messageContent = aiMsg.querySelector('.message-content');
-        
-        // Type out the response letter by letter
-        typeText(messageContent, formattedHTML, plainText, 15);
-        
-        // Re-enable send button
+        typeText(messageContent, formattedHTML, data, 15);
+
         sendBtn.disabled = false;
         sendBtn.innerHTML = `
             <span class="btn-text">Send</span>
             <span class="btn-icon">→</span>
         `;
-        
-        // Focus back on input
         chatInput.focus();
     })
-    .catch(error => {
+    .catch(() => {
         aiMsg.innerHTML = `
             <div class="message-content error-message">
                 ⚠️ Error connecting to AI server. Please try again.
@@ -353,30 +320,20 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-// Auto-focus on input when page loads
-window.addEventListener('load', () => {
-    chatInput.focus();
-});
+// Auto-focus on load
+window.addEventListener('load', () => chatInput.focus());
 
 // Auto-hide header on scroll
 let lastScrollTop = 0;
-    const header = document.querySelector('header');
-    const scrollThreshold = 10;
+const header = document.querySelector('header');
 
-    window.addEventListener('scroll', () => {
-        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-        
-        if (Math.abs(scrollTop - lastScrollTop) > scrollThreshold) {
-            if (scrollTop > lastScrollTop && scrollTop > 80) {
-                header.classList.add('hidden');
-            } else {
-                header.classList.remove('hidden');
-            }
-            
-            lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
-        }
-    }, false);
-
+window.addEventListener('scroll', () => {
+    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+    if (Math.abs(scrollTop - lastScrollTop) > 10) {
+        header.classList.toggle('hidden', scrollTop > lastScrollTop && scrollTop > 80);
+        lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
+    }
+}, false);
 </script>
 
 </body>
