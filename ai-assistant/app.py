@@ -92,6 +92,7 @@ try:
     llm = ChatGoogleGenerativeAI(
         temperature=0.4,
         model="models/gemini-2.5-flash",
+        max_output_tokens=200,
         google_api_key=os.getenv("GOOGLE_API_KEY")
     )
 
@@ -267,7 +268,7 @@ def format_medicine_response(medicine_data):
 @app.route("/")
 def home():
     """Main landing page"""
-    return render_template('ai_assistant.html')
+    return render_template('landingpage.html')
 
 @app.route("/dashboard")
 def dashboard():
@@ -565,3 +566,25 @@ if __name__ == "__main__":
     print("="*70 + "\n")
     
     app.run(debug=True, host="127.0.0.1", port=5000)
+
+
+# ========================================
+# APP ROUTES
+# ========================================
+
+
+@app.route("/about_us")
+def about_us_page():
+    return render_template('about_us.html')
+
+@app.route("/ethics")
+def ethics_page():
+    return render_template('ethics.html')
+
+@app.route("/terms")
+def terms_page():
+    return render_template('terms.html')
+
+@app.route("/contact")
+def contact_page():
+    return render_template('contact.html')
