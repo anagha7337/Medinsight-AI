@@ -33,3 +33,6 @@ tempCodeRunnerFile.py
 
 # Logs
 *.log
+
+#previous uploads
+uploads/
