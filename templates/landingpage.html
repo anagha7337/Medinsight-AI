@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medinsight AI</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+<header>
+    <img class="logo" src="{{ url_for('static', filename='assets/medinsight ai logo nobg 1.png') }}" alt="Medinsight AI Logo">
+
+    <div class="profile-wrapper">
+        <img class="dp" src="{{ url_for('static', filename='assets/account 1.png') }}" alt="Profile" id="profileBtn">
+
+        <div class="profile-popup" id="profilePopup">
+            <p class="profile-name">Anagha</p>
+            <p class="profile-username">@anagha_k</p>
+
+            <button class="add-patient-btn">Add Patient</button>
+        </div>
+    </div>
+</header>
+
+<section class="title-section">
+    <p class="big-heading">MEDINSIGHT AI</p>
+
+    <p class="description">
+        Simplifying Medical Reports.<br>
+        Empowering Patients.<br>
+        Your ultimate health companion.
+    </p>
+</section>
+
+<section>
+    <div class="feature-cards">
+        <button class="feature-nav" onclick="goToPage('report_analyzer.html')">
+            <p class="feature-heading small-heading">Medical Report Analyzer</p>
+            <img src="{{ url_for('static', filename='assets/medical_report_icon.png') }}" alt="" width="120px">
+            <p class="feature-desc small-text">Turn complex medical reports into simple, understandable insights.</p>
+        </button>
+
+        <button class="feature-nav" onclick="goToPage('medicine_lookup.html')">
+            <p class="feature-heading small-heading">Medicine Lookup</p>
+            <img src="{{ url_for('static', filename='assets/medicine_icon.png') }}" alt="" width="120px">
+            <p class="feature-desc small-text">Know what your medicines are, what they do, and why they matter.</p>
+        </button>
+
+        <button class="feature-nav" onclick="goToPage('trend_tracking.html')">
+            <p class="feature-heading small-heading">Trend & History Tracking</p>
+            <img src="{{ url_for('static', filename='assets/trends_icon.png') }}" alt="" width="120px">
+            <p class="feature-desc small-text">Track your health progress and changes over time.</p>
+        </button>
+
+        <button class="feature-nav" onclick="goToPage('ai_assistant.html')">
+            <p class="feature-heading small-heading">AI Health Query Assistant</p>
+            <img src="{{ url_for('static', filename='assets/chatbot_icon.png') }}" alt="" width="120px">
+            <p class="feature-desc small-text">Ask health questions and get clear, non-diagnostic answers instantly</p>
+        </button>
+
+        <button class="feature-nav" onclick="goToPage('scan_analyzer.html')">
+            <p class="feature-heading small-heading">Scan Report Analyzer</p>
+            <img src="{{ url_for('static', filename='assets/x-ray_icon.png') }}" alt="" width="120px">
+            <p class="feature-desc small-text">Understand your scan reports with clear explanations and visuals.</p>
+        </button>
+    </div>
+</section>
+
+    
+
+<footer>
+    <div class="page-links">
+        <a href="about_us.html">About us</a>
+        <a href="ethics.html">Ethical and Medical Disclaimer</a>
+        <a href="terms.html">Terms and Conditions</a>
+        <a href="contact.html">Contact / Support</a>
+    </div>
+
+    <p class="copyright">
+        2026 Health Companion | Academic Mini Project<br>
+        Built for educational and research purposes only
+    </p>
+</footer>
+
+<script>
+    const profileBtn = document.getElementById("profileBtn");
+    const profilePopup = document.getElementById("profilePopup");
+
+    profileBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        profilePopup.classList.toggle("show");
+    });
+
+    document.addEventListener("click", () => {
+        profilePopup.classList.remove("show");
+    });
+
+    function goToPage(page) {
+    window.location.href = page;
+  }
+</script>
+
+
+</body>
+</html>

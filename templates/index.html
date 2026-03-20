@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medinsight AI</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+<header>
+    <img class="logo" src="{{ url_for('static', filename='assets/medinsight ai logo nobg 1.png') }}" alt="Medinsight AI Logo">
+</header>
+
+<section class="title-section">
+    <p class="big-heading">MEDINSIGHT AI</p>
+
+    <p class="description">
+        Simplifying Medical Reports.<br>
+        Empowering Patients.<br>
+        Your ultimate health companion.
+    </p>
+
+    <div class="buttons">
+        <button class="button">Sign up</button>
+        <button class="button">Login</button>
+    </div>
+</section>
+
+<section class="features">
+    <p class="services">Our services</p>
+
+    <div class="card">
+        <div class="icon-section">
+            <img class="icon" src="{{ url_for('static', filename='assets/medical_report_icon.png') }}" alt="">
+        </div>
+        <div class="text-section">
+            <p class="feature-heading">Medical Report Analyzer</p>
+            <p class="feature-desc">
+                Upload your lab reports and get clear, easy-to-understand explanations.
+                We highlight abnormal values, explain what they mean, and present insights
+                in simple language—even in your regional language.
+            </p>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="icon-section">
+            <img class="icon" src="{{ url_for('static', filename='assets/medicine_icon.png') }}" alt="">
+        </div>
+        <div class="text-section">
+            <p class="feature-heading">Medicine Lookup</p>
+            <p class="feature-desc">
+                Know your medicines better. Search for any medicine to understand its uses,
+                composition, how it works, and possible side effects—all in one trusted place.
+            </p>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="icon-section">
+            <img class="icon" src="{{ url_for('static', filename='assets/trends_icon.png') }}" alt="">
+        </div>
+        <div class="text-section">
+            <p class="feature-heading">Trend & History Tracking</p>
+            <p class="feature-desc">
+                Track your health over time. View trends and changes in your medical reports,
+                compare past results, and gain insights into improvements or areas that need attention.
+            </p>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="icon-section">
+            <img class="icon" src="{{ url_for('static', filename='assets/chatbot_icon.png') }}" alt="">
+        </div>
+        <div class="text-section">
+            <p class="feature-heading">AI Health Query Assistant</p>
+            <p class="feature-desc">
+                Have health-related questions? Ask your personal AI assistant and get reliable,
+                easy-to-understand answers based on medical knowledge—without diagnosis or prescriptions.
+            </p>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="icon-section">
+            <img class="icon" src="{{ url_for('static', filename='assets/x-ray_icon.png') }}" alt="">
+        </div>
+        <div class="text-section">
+            <p class="feature-heading">Scan Report Analyzer</p>
+            <p class="feature-desc">
+                Confused by scan reports? Upload X-ray or scan images and receive simplified
+                explanations and visual insights to help you understand them better.
+            </p>
+        </div>
+    </div>
+</section>
+
+<div class="buttons single">
+    <button class="get-started">Get Started Now</button>
+</div>
+
+<footer>
+    <div class="page-links">
+        <a href="about_us.html">About us</a>
+        <a href="ethics.html">Ethical and Medical Disclaimer</a>
+        <a href="terms.html">Terms and Conditions</a>
+        <a href="contact.html">Contact / Support</a>
+    </div>
+
+    <p class="copyright">
+        2026 Health Companion | Academic Mini Project<br>
+        Built for educational and research purposes only
+    </p>
+</footer>
+
+</body>
+</html>
