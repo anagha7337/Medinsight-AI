@@ -254,7 +254,7 @@ Rules:
                 'Content-Type':  'application/json'
             },
             json={
-                'model':       'llama3-8b-8192',
+                'model': 'llama-3.3-70b-versatile',
                 'temperature': 0.1,
                 'max_tokens':  600,
                 'messages': [
@@ -588,7 +588,7 @@ WARNINGS: {warnings_t}"""
                 'Content-Type':  'application/json'
             },
             json={
-                'model':       'llama3-70b-8192',
+                'model': 'llama-3.3-70b-versatile',
                 'temperature': 0.2,
                 'max_tokens':  1000,
                 'messages': [
