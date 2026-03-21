@@ -11,9 +11,6 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&display=swap" rel="stylesheet">
 </head>
 
@@ -33,8 +30,8 @@
     </p>
 
     <div class="buttons">
-        <button class="button">Sign up</button>
-        <button class="button">Login</button>
+        <button class="button" onclick="window.location.href='/signup'">Sign up</button>
+        <button class="button" onclick="window.location.href='/login'">Login</button>
     </div>
 </section>
 
@@ -73,7 +70,7 @@
             <img class="icon" src="{{ url_for('static', filename='assets/trends_icon.png') }}" alt="">
         </div>
         <div class="text-section">
-            <p class="feature-heading">Trend & History Tracking</p>
+            <p class="feature-heading">Trend &amp; History Tracking</p>
             <p class="feature-desc">
                 Track your health over time. View trends and changes in your medical reports,
                 compare past results, and gain insights into improvements or areas that need attention.
@@ -109,15 +106,15 @@
 </section>
 
 <div class="buttons single">
-    <button class="get-started">Get Started Now</button>
+    <button class="get-started" onclick="window.location.href='/signup'">Get Started Now</button>
 </div>
 
 <footer>
     <div class="page-links">
-        <a href="about_us.html">About us</a>
-        <a href="ethics.html">Ethical and Medical Disclaimer</a>
-        <a href="terms.html">Terms and Conditions</a>
-        <a href="contact.html">Contact / Support</a>
+        <a href="/about">About us</a>
+        <a href="/ethics">Ethical and Medical Disclaimer</a>
+        <a href="/terms">Terms and Conditions</a>
+        <a href="/contact">Contact / Support</a>
     </div>
 
     <p class="copyright">

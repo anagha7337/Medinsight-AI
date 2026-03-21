@@ -72,3 +72,10 @@ instance/
 *.sql
 *.sqlite
 *.db
+
+#Supabase
+node_modules/
+supabase-config.js
+
+
+structure.txt

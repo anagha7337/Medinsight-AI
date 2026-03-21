@@ -4,17 +4,131 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Medinsight AI</title>
-
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-
-    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,.45);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-overlay.show { display: flex; }
+
+        .modal-box {
+            background: #fff;
+            border-radius: 14px;
+            padding: 28px 32px;
+            width: min(380px, 90vw);
+            box-shadow: 0 20px 60px rgba(0,0,0,.2);
+            font-family: 'Poppins', sans-serif;
+        }
+        .modal-box h3 { margin: 0 0 18px; font-size: 1.1rem; font-weight: 600; }
+        .modal-box input[type="text"] {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1.5px solid #ddd;
+            border-radius: 8px;
+            font-size: .95rem;
+            font-family: 'Poppins', sans-serif;
+            box-sizing: border-box;
+            margin-bottom: 16px;
+        }
+        .modal-box input[type="text"]:focus { outline: none; border-color: #4e9af1; }
+        .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+        .modal-actions button {
+            padding: 9px 20px;
+            border: none;
+            border-radius: 8px;
+            font-family: 'Poppins', sans-serif;
+            font-size: .9rem;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        .btn-cancel         { background: #f0f0f0; color: #555; }
+        .btn-confirm        { background: #4e9af1; color: #fff; }
+        .btn-delete-confirm { background: #e05555; color: #fff; }
+        .modal-error {
+            color: #e05555;
+            font-size: .82rem;
+            margin: -8px 0 12px;
+            display: none;
+        }
+
+        .profile-popup { min-width: 220px; }
+        .patients-list { margin: 12px 0 0; padding: 0; list-style: none; }
+        .patients-list li {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 4px;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: .85rem;
+        }
+        .patients-list li:last-child { border-bottom: none; }
+        .patient-name { flex: 1; }
+
+        .patient-action-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: .8rem;
+            padding: 3px 6px;
+            border-radius: 5px;
+            font-family: 'Poppins', sans-serif;
+        }
+        .btn-edit-patient   { color: #4e9af1; }
+        .btn-delete-patient { color: #e05555; }
+
+        .add-patient-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            width: 100%;
+            margin-top: 10px;
+            padding: 8px 12px;
+            background: #f5f9ff;
+            border: 1.5px dashed #4e9af1;
+            border-radius: 8px;
+            color: #4e9af1;
+            font-family: 'Poppins', sans-serif;
+            font-size: .88rem;
+            font-weight: 500;
+            cursor: pointer;
+            justify-content: center;
+        }
+        .add-patient-btn:hover { background: #e8f2ff; }
+
+        .patient-limit-msg {
+            font-size: .78rem;
+            color: #999;
+            text-align: center;
+            margin-top: 8px;
+        }
+
+        .logout-btn {
+            width: 100%;
+            margin-top: 12px;
+            padding: 8px;
+            background: #fff0f0;
+            border: 1px solid #fcc;
+            border-radius: 8px;
+            color: #e05555;
+            font-family: 'Poppins', sans-serif;
+            font-size: .88rem;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        .logout-btn:hover { background: #ffe0e0; }
+    </style>
 </head>
 
 <body>
@@ -23,20 +137,28 @@
     <img class="logo" src="{{ url_for('static', filename='assets/medinsight ai logo nobg 1.png') }}" alt="Medinsight AI Logo">
 
     <div class="profile-wrapper">
-        <img class="dp" src="{{ url_for('static', filename='assets/account 1.png') }}" alt="Profile" id="profileBtn">
+        <img class="dp" src="{{ url_for('static', filename='assets/account 1.png') }}" alt="Profile picture" id="profileBtn">
 
         <div class="profile-popup" id="profilePopup">
-            <p class="profile-name">Anagha</p>
-            <p class="profile-username">@anagha_k</p>
+            <p class="profile-name"     id="popup-name">Loading...</p>
+            <p class="profile-username" id="popup-email"></p>
 
-            <button class="add-patient-btn">Add Patient</button>
+            <ul class="patients-list" id="patientsList"></ul>
+
+            <button class="add-patient-btn" id="addPatientBtn">
+                <span>+</span> Add Patient
+            </button>
+            <p class="patient-limit-msg" id="patientLimitMsg" style="display:none;">
+                Patient limit (5) reached.
+            </p>
+
+            <button class="logout-btn" id="logoutBtn">Log out</button>
         </div>
     </div>
 </header>
 
 <section class="title-section">
     <p class="big-heading">MEDINSIGHT AI</p>
-
     <p class="description">
         Simplifying Medical Reports.<br>
         Empowering Patients.<br>
@@ -46,72 +168,289 @@
 
 <section>
     <div class="feature-cards">
-        <button class="feature-nav" onclick="goToPage('report_analyzer.html')">
+        <button class="feature-nav" onclick="window.location.href='/report-analyzer'">
             <p class="feature-heading small-heading">Medical Report Analyzer</p>
-            <img src="{{ url_for('static', filename='assets/medical_report_icon.png') }}" alt="" width="120px">
+            <img class="icon" src="{{ url_for('static', filename='assets/medical_report_icon.png') }}" alt="">
             <p class="feature-desc small-text">Turn complex medical reports into simple, understandable insights.</p>
         </button>
-
-        <button class="feature-nav" onclick="goToPage('medicine_lookup.html')">
+        <button class="feature-nav" onclick="window.location.href='/medicine-lookup'">
             <p class="feature-heading small-heading">Medicine Lookup</p>
-            <img src="{{ url_for('static', filename='assets/medicine_icon.png') }}" alt="" width="120px">
+            <img class="icon" src="{{ url_for('static', filename='assets/medicine_icon.png') }}" alt="">
             <p class="feature-desc small-text">Know what your medicines are, what they do, and why they matter.</p>
         </button>
-
-        <button class="feature-nav" onclick="goToPage('trend_tracking.html')">
-            <p class="feature-heading small-heading">Trend & History Tracking</p>
-            <img src="{{ url_for('static', filename='assets/trends_icon.png') }}" alt="" width="120px">
+        <button class="feature-nav">
+            <p class="feature-heading small-heading">Trend &amp; History Tracking</p>
+            <img class="icon" src="{{ url_for('static', filename='assets/trends_icon.png') }}" alt="">
             <p class="feature-desc small-text">Track your health progress and changes over time.</p>
         </button>
-
-        <button class="feature-nav" onclick="goToPage('ai_assistant.html')">
+        <button class="feature-nav" onclick="window.location.href='/ai-assistant'">
             <p class="feature-heading small-heading">AI Health Query Assistant</p>
-            <img src="{{ url_for('static', filename='assets/chatbot_icon.png') }}" alt="" width="120px">
-            <p class="feature-desc small-text">Ask health questions and get clear, non-diagnostic answers instantly</p>
+            <img class="icon" src="{{ url_for('static', filename='assets/chatbot_icon.png') }}" alt="">
+            <p class="feature-desc small-text">Ask health questions and get clear, non-diagnostic answers instantly.</p>
         </button>
-
-        <button class="feature-nav" onclick="goToPage('scan_analyzer.html')">
+        <button class="feature-nav" onclick="window.location.href='/scan-analyzer'">
             <p class="feature-heading small-heading">Scan Report Analyzer</p>
-            <img src="{{ url_for('static', filename='assets/x-ray_icon.png') }}" alt="" width="120px">
+            <img class="icon" src="{{ url_for('static', filename='assets/x-ray_icon.png') }}" alt="">
             <p class="feature-desc small-text">Understand your scan reports with clear explanations and visuals.</p>
         </button>
     </div>
 </section>
 
-    
-
 <footer>
     <div class="page-links">
-        <a href="about_us.html">About us</a>
-        <a href="ethics.html">Ethical and Medical Disclaimer</a>
-        <a href="terms.html">Terms and Conditions</a>
-        <a href="contact.html">Contact / Support</a>
+        <a href="/about">About us</a>
+        <a href="/ethics">Ethical and Medical Disclaimer</a>
+        <a href="/terms">Terms and Conditions</a>
+        <a href="/contact">Contact / Support</a>
     </div>
-
     <p class="copyright">
         2026 Health Companion | Academic Mini Project<br>
         Built for educational and research purposes only
     </p>
 </footer>
 
+<!-- Add Patient modal -->
+<div class="modal-overlay" id="addModal">
+    <div class="modal-box">
+        <h3>Add Patient</h3>
+        <input type="text" id="addPatientName" placeholder="Patient's full name" maxlength="80">
+        <p class="modal-error" id="addModalError"></p>
+        <div class="modal-actions">
+            <button class="btn-cancel"  id="addModalCancel">Cancel</button>
+            <button class="btn-confirm" id="addModalConfirm">Add</button>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Patient modal -->
+<div class="modal-overlay" id="editModal">
+    <div class="modal-box">
+        <h3>Edit Patient Name</h3>
+        <input type="text" id="editPatientName" placeholder="New name" maxlength="80">
+        <p class="modal-error" id="editModalError"></p>
+        <div class="modal-actions">
+            <button class="btn-cancel"  id="editModalCancel">Cancel</button>
+            <button class="btn-confirm" id="editModalConfirm">Save</button>
+        </div>
+    </div>
+</div>
+
+<!-- Delete confirmation modal -->
+<div class="modal-overlay" id="deleteModal">
+    <div class="modal-box">
+        <h3>Remove Patient?</h3>
+        <p style="font-size:.9rem;color:#555;margin:0 0 20px;">
+            Are you sure you want to remove <strong id="deletePatientLabel"></strong>?
+            This cannot be undone.
+        </p>
+        <div class="modal-actions">
+            <button class="btn-cancel"         id="deleteModalCancel">Cancel</button>
+            <button class="btn-delete-confirm" id="deleteModalConfirm">Remove</button>
+        </div>
+    </div>
+</div>
+
 <script>
-    const profileBtn = document.getElementById("profileBtn");
-    const profilePopup = document.getElementById("profilePopup");
+const SUPABASE_URL      = '{{ supabase_url }}';
+const SUPABASE_ANON_KEY = '{{ supabase_anon_key }}';
 
-    profileBtn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        profilePopup.classList.toggle("show");
+const { createClient } = supabase;
+const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const MAX_PATIENTS = 5;
+let currentUser = null;
+
+// Auth guard — redirect to login if no session
+(async () => {
+    const { data: { session } } = await _supabase.auth.getSession();
+    if (!session) {
+        window.location.href = '/login';
+        return;
+    }
+    currentUser = session.user;
+    await loadProfile();
+    await loadPatients();
+})();
+
+async function loadProfile() {
+    const { data } = await _supabase
+        .from('profiles')
+        .select('full_name')
+        .eq('id', currentUser.id)
+        .single();
+
+    if (data) {
+        document.getElementById('popup-name').textContent  = data.full_name;
+        document.getElementById('popup-email').textContent = currentUser.email;
+    }
+}
+
+let patients = [];
+
+async function loadPatients() {
+    const { data, error } = await _supabase
+        .from('patients')
+        .select('id, name')
+        .eq('owner_id', currentUser.id)
+        .order('created_at', { ascending: true });
+
+    if (error) { console.error(error); return; }
+    patients = data || [];
+    renderPatients();
+}
+
+function renderPatients() {
+    const list     = document.getElementById('patientsList');
+    const addBtn   = document.getElementById('addPatientBtn');
+    const limitMsg = document.getElementById('patientLimitMsg');
+
+    list.innerHTML = '';
+
+    patients.forEach(p => {
+        const li = document.createElement('li');
+        li.innerHTML = `
+            <span class="patient-name">${escapeHtml(p.name)}</span>
+            <button class="patient-action-btn btn-edit-patient"   data-id="${p.id}">Edit</button>
+            <button class="patient-action-btn btn-delete-patient" data-id="${p.id}" data-name="${escapeHtml(p.name)}">Remove</button>
+        `;
+        list.appendChild(li);
     });
 
-    document.addEventListener("click", () => {
-        profilePopup.classList.remove("show");
-    });
+    list.querySelectorAll('.btn-edit-patient').forEach(btn =>
+        btn.addEventListener('click', e => { e.stopPropagation(); openEditModal(btn.dataset.id); })
+    );
+    list.querySelectorAll('.btn-delete-patient').forEach(btn =>
+        btn.addEventListener('click', e => { e.stopPropagation(); openDeleteModal(btn.dataset.id, btn.dataset.name); })
+    );
 
-    function goToPage(page) {
-    window.location.href = page;
-  }
+    if (patients.length >= MAX_PATIENTS) {
+        addBtn.style.display   = 'none';
+        limitMsg.style.display = 'block';
+    } else {
+        addBtn.style.display   = 'flex';
+        limitMsg.style.display = 'none';
+    }
+}
+
+// Profile popup
+const profileBtn   = document.getElementById('profileBtn');
+const profilePopup = document.getElementById('profilePopup');
+
+profileBtn.addEventListener('click', e => { e.stopPropagation(); profilePopup.classList.toggle('show'); });
+document.addEventListener('click', () => profilePopup.classList.remove('show'));
+profilePopup.addEventListener('click', e => e.stopPropagation());
+
+// Logout
+document.getElementById('logoutBtn').addEventListener('click', async () => {
+    await _supabase.auth.signOut();
+    window.location.href = '/login';
+});
+
+// ── Add patient ──────────────────────────────────────────────────────────────
+const addModal   = document.getElementById('addModal');
+const addInput   = document.getElementById('addPatientName');
+const addErrorEl = document.getElementById('addModalError');
+
+document.getElementById('addPatientBtn').addEventListener('click', e => {
+    e.stopPropagation();
+    addInput.value = '';
+    addErrorEl.style.display = 'none';
+    addModal.classList.add('show');
+    setTimeout(() => addInput.focus(), 50);
+});
+
+document.getElementById('addModalCancel').addEventListener('click', () => addModal.classList.remove('show'));
+
+document.getElementById('addModalConfirm').addEventListener('click', async () => {
+    const name = addInput.value.trim();
+    if (!name) { showModalError(addErrorEl, 'Please enter a name.'); return; }
+    if (patients.length >= MAX_PATIENTS) { showModalError(addErrorEl, 'You have reached the 5-patient limit.'); return; }
+
+    const { error } = await _supabase
+        .from('patients')
+        .insert({ owner_id: currentUser.id, name })
+        .select()
+        .single();
+
+    if (error) { showModalError(addErrorEl, 'Could not add patient. Try again.'); return; }
+
+    addModal.classList.remove('show');
+    await loadPatients();
+});
+
+// ── Edit patient ─────────────────────────────────────────────────────────────
+const editModal    = document.getElementById('editModal');
+const editInput    = document.getElementById('editPatientName');
+const editErrorEl  = document.getElementById('editModalError');
+let   editingId    = null;
+
+function openEditModal(patientId) {
+    editingId = patientId;
+    const patient = patients.find(p => p.id === patientId);
+    editInput.value = patient ? patient.name : '';
+    editErrorEl.style.display = 'none';
+    editModal.classList.add('show');
+    setTimeout(() => editInput.focus(), 50);
+}
+
+document.getElementById('editModalCancel').addEventListener('click', () => editModal.classList.remove('show'));
+
+document.getElementById('editModalConfirm').addEventListener('click', async () => {
+    const name = editInput.value.trim();
+    if (!name) { showModalError(editErrorEl, 'Name cannot be empty.'); return; }
+
+    const { error } = await _supabase
+        .from('patients')
+        .update({ name })
+        .eq('id', editingId)
+        .eq('owner_id', currentUser.id);
+
+    if (error) { showModalError(editErrorEl, 'Could not save. Try again.'); return; }
+
+    editModal.classList.remove('show');
+    await loadPatients();
+});
+
+// ── Delete patient ───────────────────────────────────────────────────────────
+const deleteModal = document.getElementById('deleteModal');
+let   deletingId  = null;
+
+function openDeleteModal(patientId, patientName) {
+    deletingId = patientId;
+    document.getElementById('deletePatientLabel').textContent = patientName;
+    deleteModal.classList.add('show');
+}
+
+document.getElementById('deleteModalCancel').addEventListener('click', () => deleteModal.classList.remove('show'));
+
+document.getElementById('deleteModalConfirm').addEventListener('click', async () => {
+    const { error } = await _supabase
+        .from('patients')
+        .delete()
+        .eq('id', deletingId)
+        .eq('owner_id', currentUser.id);
+
+    if (error) { alert('Could not delete. Try again.'); return; }
+
+    deleteModal.classList.remove('show');
+    await loadPatients();
+});
+
+// Close any modal by clicking the dark overlay
+[addModal, editModal, deleteModal].forEach(m => {
+    m.addEventListener('click', e => { if (e.target === m) m.classList.remove('show'); });
+});
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+function showModalError(el, msg) {
+    el.textContent   = msg;
+    el.style.display = 'block';
+}
+
+function escapeHtml(str) {
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
 </script>
-
 
 </body>
 </html>

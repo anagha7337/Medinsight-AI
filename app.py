@@ -1,4 +1,4 @@
-from flask import Flask, render_template, jsonify, request
+from flask import Flask, render_template, jsonify, request, redirect, url_for
 from flask_cors import CORS
 import os
 import requests
@@ -15,13 +15,13 @@ from src.report_analyzer.ai_interpreter import interpret_abnormality
 from src.report_analyzer.scan_interpreter import interpret_scan
 
 # AI Chatbot imports
-from src.ai_assistant.helper import download_hugging_face_embeddings
-from langchain_pinecone import PineconeVectorStore
-from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain.chains import create_retrieval_chain
-from langchain.chains.combine_documents import create_stuff_documents_chain
-from langchain_core.prompts import ChatPromptTemplate
-from src.ai_assistant.prompt import system_prompt
+# from src.ai_assistant.helper import download_hugging_face_embeddings
+# from langchain_pinecone import PineconeVectorStore
+# from langchain_google_genai import ChatGoogleGenerativeAI
+# from langchain.chains import create_retrieval_chain
+# from langchain.chains.combine_documents import create_stuff_documents_chain
+# from langchain_core.prompts import ChatPromptTemplate
+# from src.ai_assistant.prompt import system_prompt
 
 # ========================================
 # FLASK APP INITIALIZATION
@@ -42,22 +42,26 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 # ========================================
 
 # Database
-DB_HOST = config('DB_HOST', default='localhost')
-DB_USER = config('DB_USER', default='root')
+DB_HOST     = config('DB_HOST',     default='localhost')
+DB_USER     = config('DB_USER',     default='root')
 DB_PASSWORD = config('DB_PASSWORD')
-DB_NAME = config('DB_NAME', default='MEDINSIGHT_AI')
+DB_NAME     = config('DB_NAME',     default='MEDINSIGHT_AI')
+
+# Supabase (used by frontend JS — injected into templates)
+SUPABASE_URL      = config('SUPABASE_URL')
+SUPABASE_ANON_KEY = config('SUPABASE_ANON_KEY')
 
 # AI Services
 PINECONE_API_KEY = config('PINECONE_API_KEY')
-GOOGLE_API_KEY = config('GOOGLE_API_KEY')
+GOOGLE_API_KEY   = config('GOOGLE_API_KEY')
 
 # ========================================
 # DATABASE CONFIGURATION
 # ========================================
 
 db_config = {
-    'host': DB_HOST,
-    'user': DB_USER,
+    'host':     DB_HOST,
+    'user':     DB_USER,
     'password': DB_PASSWORD,
     'database': DB_NAME
 }
@@ -76,40 +80,56 @@ def create_connection():
 # AI CHATBOT SETUP (RAG)
 # ========================================
 
-print("🤖 Initializing AI Chatbot...")
+CHATBOT_INITIALIZED = False
 
-try:
-    embeddings = download_hugging_face_embeddings()
+# print("🤖 Initializing AI Chatbot...")
+
+# try:
+#     embeddings = download_hugging_face_embeddings()
     
-    docsearch = PineconeVectorStore.from_existing_index(
-        index_name="medicalbot",
-        embedding=embeddings
+#     docsearch = PineconeVectorStore.from_existing_index(
+#         index_name="medicalbot",
+#         embedding=embeddings
+#     )
+    
+#     retriever = docsearch.as_retriever(search_type="similarity", search_kwargs={"k": 1})
+    
+#     llm = ChatGoogleGenerativeAI(
+#         model="gemini-2.0-flash-exp",
+#         temperature=0.4,
+#         google_api_key=GOOGLE_API_KEY
+#     )
+    
+#     prompt = ChatPromptTemplate.from_messages(
+#         [
+#             ("system", system_prompt),
+#             ("human", "{input}"),
+#         ]
+#     )
+    
+#     question_answer_chain = create_stuff_documents_chain(llm, prompt)
+#     rag_chain = create_retrieval_chain(retriever, question_answer_chain)
+    
+#     CHATBOT_INITIALIZED = True
+#     print("✅ AI Chatbot initialized successfully")
+    
+# except Exception as e:
+#     print(f"⚠️ AI Chatbot initialization failed: {e}")
+#     CHATBOT_INITIALIZED = False
+
+# ========================================
+# SUPABASE TEMPLATE HELPER
+# ========================================
+
+def render_with_supabase(template, **kwargs):
+    """Render a template and inject Supabase credentials so the frontend JS
+    can initialise the Supabase client without hard-coding secrets."""
+    return render_template(
+        template,
+        supabase_url=SUPABASE_URL,
+        supabase_anon_key=SUPABASE_ANON_KEY,
+        **kwargs
     )
-    
-    retriever = docsearch.as_retriever(search_type="similarity", search_kwargs={"k": 1})
-    
-    llm = ChatGoogleGenerativeAI(
-        model="gemini-2.0-flash-exp",
-        temperature=0.4,
-        google_api_key=GOOGLE_API_KEY
-    )
-    
-    prompt = ChatPromptTemplate.from_messages(
-        [
-            ("system", system_prompt),
-            ("human", "{input}"),
-        ]
-    )
-    
-    question_answer_chain = create_stuff_documents_chain(llm, prompt)
-    rag_chain = create_retrieval_chain(retriever, question_answer_chain)
-    
-    CHATBOT_INITIALIZED = True
-    print("✅ AI Chatbot initialized successfully")
-    
-except Exception as e:
-    print(f"⚠️ AI Chatbot initialization failed: {e}")
-    CHATBOT_INITIALIZED = False
 
 # ========================================
 # DATABASE HELPER FUNCTIONS
@@ -228,33 +248,32 @@ def format_medicine_response(medicine_data):
     """Format medicine data for frontend"""
     if 'openfda' in medicine_data:
         openfda = medicine_data.get('openfda', {})
-        brand_name = openfda.get('brand_name', ['N/A'])[0] if openfda.get('brand_name') else 'N/A'
-        generic_name = openfda.get('generic_name', ['N/A'])[0] if openfda.get('generic_name') else 'N/A'
-        manufacturer = openfda.get('manufacturer_name', ['N/A'])[0] if openfda.get('manufacturer_name') else 'N/A'
-        product_type = openfda.get('product_type', ['N/A'])[0] if openfda.get('product_type') else 'N/A'
-        
-        uses = medicine_data.get('indications_and_usage', ['N/A'])[0] if medicine_data.get('indications_and_usage') else 'N/A'
-        warnings = medicine_data.get('warnings', ['N/A'])[0] if medicine_data.get('warnings') else 'N/A'
-        side_effects = medicine_data.get('adverse_reactions', ['N/A'])[0] if medicine_data.get('adverse_reactions') else 'N/A'
-        mechanism = medicine_data.get('mechanism_of_action', ['N/A'])[0] if medicine_data.get('mechanism_of_action') else 'N/A'
+        brand_name   = openfda.get('brand_name',       ['N/A'])[0] if openfda.get('brand_name')       else 'N/A'
+        generic_name = openfda.get('generic_name',     ['N/A'])[0] if openfda.get('generic_name')     else 'N/A'
+        manufacturer = openfda.get('manufacturer_name',['N/A'])[0] if openfda.get('manufacturer_name')else 'N/A'
+        product_type = openfda.get('product_type',     ['N/A'])[0] if openfda.get('product_type')     else 'N/A'
+        uses         = medicine_data.get('indications_and_usage',    ['N/A'])[0] if medicine_data.get('indications_and_usage')    else 'N/A'
+        warnings     = medicine_data.get('warnings',                 ['N/A'])[0] if medicine_data.get('warnings')                 else 'N/A'
+        side_effects = medicine_data.get('adverse_reactions',        ['N/A'])[0] if medicine_data.get('adverse_reactions')        else 'N/A'
+        mechanism    = medicine_data.get('mechanism_of_action',      ['N/A'])[0] if medicine_data.get('mechanism_of_action')      else 'N/A'
     else:
-        brand_name = medicine_data.get('brand_name', 'N/A')
-        generic_name = medicine_data.get('generic_name', 'N/A')
-        manufacturer = medicine_data.get('manufacturer_name', 'N/A')
-        product_type = medicine_data.get('product_type', 'N/A')
-        uses = medicine_data.get('indications_and_usage', 'N/A')
-        warnings = medicine_data.get('warnings', 'N/A')
-        side_effects = medicine_data.get('adverse_reactions', 'N/A')
-        mechanism = medicine_data.get('mechanism_of_action', 'N/A')
+        brand_name   = medicine_data.get('brand_name',            'N/A')
+        generic_name = medicine_data.get('generic_name',          'N/A')
+        manufacturer = medicine_data.get('manufacturer_name',     'N/A')
+        product_type = medicine_data.get('product_type',          'N/A')
+        uses         = medicine_data.get('indications_and_usage', 'N/A')
+        warnings     = medicine_data.get('warnings',              'N/A')
+        side_effects = medicine_data.get('adverse_reactions',     'N/A')
+        mechanism    = medicine_data.get('mechanism_of_action',   'N/A')
     
     return {
-        'brand_name': brand_name,
-        'generic_name': generic_name,
-        'manufacturer': manufacturer,
-        'category': product_type,
-        'uses': uses,
-        'warnings': warnings,
-        'side_effects': side_effects,
+        'brand_name':        brand_name,
+        'generic_name':      generic_name,
+        'manufacturer':      manufacturer,
+        'category':          product_type,
+        'uses':              uses,
+        'warnings':          warnings,
+        'side_effects':      side_effects,
         'mechanism_of_action': mechanism
     }
 
@@ -264,13 +283,37 @@ def format_medicine_response(medicine_data):
 
 @app.route("/")
 def home():
-    """Main landing page"""
+    """Public landing page — visible to everyone, no auth required"""
     return render_template('index.html')
+
+@app.route("/landingpage")
+def landingpage():
+    """Logged-in user dashboard — auth guard enforced client-side via Supabase session"""
+    return render_with_supabase('landingpage.html')
+
+@app.route("/trend-tracking")
+def trend_tracking_page():
+    """Trend & history tracking page"""
+    return render_with_supabase('trend_tracking.html')
 
 @app.route("/dashboard")
 def dashboard():
     """User dashboard with all features"""
-    return render_template('dashboard.html')
+    return render_with_supabase('dashboard.html')
+
+# ========================================
+# ROUTES - AUTHENTICATION PAGES
+# ========================================
+
+@app.route("/signup")
+def signup_page():
+    """Sign-up page"""
+    return render_with_supabase('signup.html')
+
+@app.route("/login")
+def login_page():
+    """Login page"""
+    return render_with_supabase('login.html')
 
 # ========================================
 # ROUTES - MEDICAL REPORT ANALYZER
@@ -279,7 +322,7 @@ def dashboard():
 @app.route("/report-analyzer")
 def report_analyzer_page():
     """Report analyzer page"""
-    return render_template('report_analyzer.html')
+    return render_with_supabase('report_analyzer.html')
 
 @app.route("/upload-report", methods=["POST"])
 def upload_report():
@@ -332,11 +375,32 @@ def upload_report():
 
         print("\n✨ Analysis complete!\n")
 
+        # Build all_values: every parsed metric with normal range as [min, max] array
+        all_values = {}
+        for test_name, details in parsed_values.items():
+            normal_range_arr = None
+            try:
+                if isinstance(details.get("normal_range"), list):
+                    normal_range_arr = [float(details["normal_range"][0]), float(details["normal_range"][1])]
+                elif isinstance(details.get("normal_range"), str) and "-" in str(details["normal_range"]):
+                    parts = str(details["normal_range"]).split("-")
+                    normal_range_arr = [float(parts[0].strip()), float(parts[1].strip())]
+            except Exception:
+                normal_range_arr = None
+
+            all_values[test_name] = {
+                "value":           details.get("value"),
+                "unit":            details.get("unit", ""),
+                "normal_range":    details.get("normal_range", ""),
+                "normal_range_arr": normal_range_arr
+            }
+
         return jsonify({
             "message": "Report analyzed successfully",
             "filename": file.filename,
             "language": language,
-            "abnormal_values": abnormal_values
+            "abnormal_values": abnormal_values,
+            "all_values": all_values
         })
 
     except Exception as e:
@@ -353,7 +417,7 @@ def upload_report():
 @app.route("/scan-analyzer")
 def scan_analyzer_page():
     """Scan analyzer page"""
-    return render_template('scan_analyzer.html')
+    return render_with_supabase('scan_analyzer.html')
 
 @app.route("/upload-scan", methods=["POST"])
 def upload_scan():
@@ -422,7 +486,7 @@ def upload_scan():
 @app.route("/medicine-lookup")
 def medicine_lookup_page():
     """Medicine lookup page"""
-    return render_template('medicine_lookup.html')
+    return render_with_supabase('medicine_lookup.html')
 
 @app.route('/api/search-medicine', methods=['GET'])
 def search_medicine_api():
@@ -474,9 +538,9 @@ def search_medicine_api():
 def ai_assistant_page():
     """AI Assistant chatbot page"""
     if not CHATBOT_INITIALIZED:
-        return render_template('error.html', 
+        return render_with_supabase('error.html', 
                              message="AI Chatbot is currently unavailable. Please try again later.")
-    return render_template('ai_assistant.html')
+    return render_with_supabase('ai_assistant.html')
 
 @app.route("/get", methods=["GET", "POST"])
 def chat():
@@ -545,20 +609,24 @@ if __name__ == "__main__":
     print("   2. ✅ Scan Report Analyzer (X-rays, CT, MRI)")
     print("   3. ✅ Medicine Lookup Dictionary")
     print("   4. ✅ AI Medical Assistant Chatbot (RAG)")
+    print("\n🔐 Authentication:")
+    print("   • GET  /signup  - Sign-up page")
+    print("   • GET  /login   - Login page")
+    print("   (Auth handled client-side via Supabase JS SDK)")
     print("\n🌐 Server starting on http://127.0.0.1:5000")
     print("\n📡 Web Pages:")
-    print("   • GET  / - Home page")
+    print("   • GET  /          - Home / landing page")
     print("   • GET  /dashboard - User dashboard")
     print("   • GET  /report-analyzer - Lab report analyzer")
-    print("   • GET  /scan-analyzer - Scan image analyzer")
+    print("   • GET  /scan-analyzer   - Scan image analyzer")
     print("   • GET  /medicine-lookup - Medicine dictionary")
-    print("   • GET  /ai-assistant - AI chatbot")
+    print("   • GET  /ai-assistant    - AI chatbot")
     print("\n📡 API Endpoints:")
     print("   • POST /upload-report - Lab report analysis")
-    print("   • POST /upload-scan - Scan image analysis")
+    print("   • POST /upload-scan   - Scan image analysis")
     print("   • GET  /api/search-medicine?name=<medicine> - Medicine lookup")
-    print("   • POST /get - AI chatbot query")
-    print("   • GET  /health - Health check")
+    print("   • POST /get           - AI chatbot query")
+    print("   • GET  /health        - Health check")
     print("\n⚡ Press CTRL+C to stop")
     print("="*70 + "\n")
     
