@@ -376,22 +376,30 @@ def upload_report():
         print("\n✨ Analysis complete!\n")
 
         # Build all_values: every parsed metric with normal range as [min, max] array
+        # parsed_values format: { test_name: float_value }
+        # abnormal_values format: { test_name: { value, normal_range, status, ... } }
         all_values = {}
-        for test_name, details in parsed_values.items():
+        for test_name, raw_value in parsed_values.items():
+            # Get richer info from abnormal_values if this test appears there
+            abnormal_info = abnormal_values.get(test_name, {})
+
+            # Parse normal_range string into [min, max] array for Chart.js
             normal_range_arr = None
+            normal_range_str = abnormal_info.get("normal_range", "")
             try:
-                if isinstance(details.get("normal_range"), list):
-                    normal_range_arr = [float(details["normal_range"][0]), float(details["normal_range"][1])]
-                elif isinstance(details.get("normal_range"), str) and "-" in str(details["normal_range"]):
-                    parts = str(details["normal_range"]).split("-")
+                if isinstance(normal_range_str, list) and len(normal_range_str) == 2:
+                    normal_range_arr = [float(normal_range_str[0]), float(normal_range_str[1])]
+                elif isinstance(normal_range_str, str) and "-" in normal_range_str:
+                    # handles "13.0-17.0" and "4000-11000"
+                    parts = normal_range_str.split("-")
                     normal_range_arr = [float(parts[0].strip()), float(parts[1].strip())]
             except Exception:
                 normal_range_arr = None
 
             all_values[test_name] = {
-                "value":           details.get("value"),
-                "unit":            details.get("unit", ""),
-                "normal_range":    details.get("normal_range", ""),
+                "value":            raw_value,
+                "unit":             abnormal_info.get("unit", ""),
+                "normal_range":     normal_range_str,
                 "normal_range_arr": normal_range_arr
             }
 

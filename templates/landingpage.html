@@ -22,7 +22,6 @@
             justify-content: center;
         }
         .modal-overlay.show { display: flex; }
-
         .modal-box {
             background: #fff;
             border-radius: 14px;
@@ -62,7 +61,6 @@
             margin: -8px 0 12px;
             display: none;
         }
-
         .profile-popup { min-width: 220px; }
         .patients-list { margin: 12px 0 0; padding: 0; list-style: none; }
         .patients-list li {
@@ -75,7 +73,6 @@
         }
         .patients-list li:last-child { border-bottom: none; }
         .patient-name { flex: 1; }
-
         .patient-action-btn {
             background: none;
             border: none;
@@ -87,7 +84,6 @@
         }
         .btn-edit-patient   { color: #4e9af1; }
         .btn-delete-patient { color: #e05555; }
-
         .add-patient-btn {
             display: flex;
             align-items: center;
@@ -106,14 +102,12 @@
             justify-content: center;
         }
         .add-patient-btn:hover { background: #e8f2ff; }
-
         .patient-limit-msg {
             font-size: .78rem;
             color: #999;
             text-align: center;
             margin-top: 8px;
         }
-
         .logout-btn {
             width: 100%;
             margin-top: 12px;
@@ -178,7 +172,7 @@
             <img class="icon" src="{{ url_for('static', filename='assets/medicine_icon.png') }}" alt="">
             <p class="feature-desc small-text">Know what your medicines are, what they do, and why they matter.</p>
         </button>
-        <button class="feature-nav">
+        <button class="feature-nav" onclick="window.location.href='/trend-tracking'">
             <p class="feature-heading small-heading">Trend &amp; History Tracking</p>
             <img class="icon" src="{{ url_for('static', filename='assets/trends_icon.png') }}" alt="">
             <p class="feature-desc small-text">Track your health progress and changes over time.</p>
@@ -260,7 +254,6 @@ const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const MAX_PATIENTS = 5;
 let currentUser = null;
 
-// Auth guard — redirect to login if no session
 (async () => {
     const { data: { session } } = await _supabase.auth.getSession();
     if (!session) {
@@ -278,7 +271,6 @@ async function loadProfile() {
         .select('full_name')
         .eq('id', currentUser.id)
         .single();
-
     if (data) {
         document.getElementById('popup-name').textContent  = data.full_name;
         document.getElementById('popup-email').textContent = currentUser.email;
@@ -293,7 +285,6 @@ async function loadPatients() {
         .select('id, name')
         .eq('owner_id', currentUser.id)
         .order('created_at', { ascending: true });
-
     if (error) { console.error(error); return; }
     patients = data || [];
     renderPatients();
@@ -305,7 +296,6 @@ function renderPatients() {
     const limitMsg = document.getElementById('patientLimitMsg');
 
     list.innerHTML = '';
-
     patients.forEach(p => {
         const li = document.createElement('li');
         li.innerHTML = `
@@ -332,21 +322,18 @@ function renderPatients() {
     }
 }
 
-// Profile popup
 const profileBtn   = document.getElementById('profileBtn');
 const profilePopup = document.getElementById('profilePopup');
-
 profileBtn.addEventListener('click', e => { e.stopPropagation(); profilePopup.classList.toggle('show'); });
 document.addEventListener('click', () => profilePopup.classList.remove('show'));
 profilePopup.addEventListener('click', e => e.stopPropagation());
 
-// Logout
 document.getElementById('logoutBtn').addEventListener('click', async () => {
     await _supabase.auth.signOut();
     window.location.href = '/login';
 });
 
-// ── Add patient ──────────────────────────────────────────────────────────────
+// ── Add patient
 const addModal   = document.getElementById('addModal');
 const addInput   = document.getElementById('addPatientName');
 const addErrorEl = document.getElementById('addModalError');
@@ -358,9 +345,7 @@ document.getElementById('addPatientBtn').addEventListener('click', e => {
     addModal.classList.add('show');
     setTimeout(() => addInput.focus(), 50);
 });
-
 document.getElementById('addModalCancel').addEventListener('click', () => addModal.classList.remove('show'));
-
 document.getElementById('addModalConfirm').addEventListener('click', async () => {
     const name = addInput.value.trim();
     if (!name) { showModalError(addErrorEl, 'Please enter a name.'); return; }
@@ -373,12 +358,11 @@ document.getElementById('addModalConfirm').addEventListener('click', async () =>
         .single();
 
     if (error) { showModalError(addErrorEl, 'Could not add patient. Try again.'); return; }
-
     addModal.classList.remove('show');
     await loadPatients();
 });
 
-// ── Edit patient ─────────────────────────────────────────────────────────────
+// ── Edit patient
 const editModal    = document.getElementById('editModal');
 const editInput    = document.getElementById('editPatientName');
 const editErrorEl  = document.getElementById('editModalError');
@@ -392,9 +376,7 @@ function openEditModal(patientId) {
     editModal.classList.add('show');
     setTimeout(() => editInput.focus(), 50);
 }
-
 document.getElementById('editModalCancel').addEventListener('click', () => editModal.classList.remove('show'));
-
 document.getElementById('editModalConfirm').addEventListener('click', async () => {
     const name = editInput.value.trim();
     if (!name) { showModalError(editErrorEl, 'Name cannot be empty.'); return; }
@@ -406,12 +388,11 @@ document.getElementById('editModalConfirm').addEventListener('click', async () =
         .eq('owner_id', currentUser.id);
 
     if (error) { showModalError(editErrorEl, 'Could not save. Try again.'); return; }
-
     editModal.classList.remove('show');
     await loadPatients();
 });
 
-// ── Delete patient ───────────────────────────────────────────────────────────
+// ── Delete patient
 const deleteModal = document.getElementById('deleteModal');
 let   deletingId  = null;
 
@@ -420,9 +401,7 @@ function openDeleteModal(patientId, patientName) {
     document.getElementById('deletePatientLabel').textContent = patientName;
     deleteModal.classList.add('show');
 }
-
 document.getElementById('deleteModalCancel').addEventListener('click', () => deleteModal.classList.remove('show'));
-
 document.getElementById('deleteModalConfirm').addEventListener('click', async () => {
     const { error } = await _supabase
         .from('patients')
@@ -431,22 +410,18 @@ document.getElementById('deleteModalConfirm').addEventListener('click', async ()
         .eq('owner_id', currentUser.id);
 
     if (error) { alert('Could not delete. Try again.'); return; }
-
     deleteModal.classList.remove('show');
     await loadPatients();
 });
 
-// Close any modal by clicking the dark overlay
 [addModal, editModal, deleteModal].forEach(m => {
     m.addEventListener('click', e => { if (e.target === m) m.classList.remove('show'); });
 });
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
 function showModalError(el, msg) {
     el.textContent   = msg;
     el.style.display = 'block';
 }
-
 function escapeHtml(str) {
     return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
