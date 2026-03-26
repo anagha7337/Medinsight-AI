@@ -124,7 +124,8 @@ header.hidden {
     flex-direction: column;
     align-items: center;
     text-align: center;
-    padding: 75px 20px 100px;
+    padding: 75px 20px;
+    margin-top: 80px;
     animation: fadeUp 0.8s ease both;
 }
 
@@ -283,6 +284,8 @@ header.hidden {
     font-size: 40px;
     font-weight: bold;
     margin-left: 100px;
+    margin-top: 80px;
+    padding-top: 60px;
 }
 
 .text-body {
@@ -444,6 +447,7 @@ footer {
     min-height: calc(100vh - 80px - 200px);
     padding: 60px 20px;
     background-color: #f5f8fa;
+    margin-top: 80px;
 }
 
 .page-title {
@@ -576,6 +580,7 @@ footer {
     min-height: calc(100vh - 80px - 200px);
     padding: 60px 20px;
     background-color: #f5f8fa;
+    margin-top: 80px;
 }
 
 .search-container {
@@ -664,6 +669,7 @@ footer {
     min-height: calc(100vh - 80px - 200px);
     padding: 60px 20px;
     background-color: #f5f8fa;
+    margin-top: 80px;
 }
 
 .trend-container {
