@@ -1,6 +1,6 @@
 # Prepates data. Creates Pineconde index
  
-from src.helper import load_pdf_file, text_split, download_hugging_face_embeddings
+from src.ai_assistant.helper import load_pdf_file, text_split, download_hugging_face_embeddings
 
 from pinecone import Pinecone, ServerlessSpec
 from langchain_pinecone import PineconeVectorStore

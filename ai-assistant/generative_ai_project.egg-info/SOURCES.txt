@@ -1,5 +1,0 @@
-setup.py
-src/generative_ai_project.egg-info/PKG-INFO
-src/generative_ai_project.egg-info/SOURCES.txt
-src/generative_ai_project.egg-info/dependency_links.txt
-src/generative_ai_project.egg-info/top_level.txt

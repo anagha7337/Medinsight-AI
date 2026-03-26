@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - Medinsight AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@200..800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+<header>
+    <img class="logo" src="{{ url_for('static', filename='assets/medinsight ai logo nobg 1.png') }}" alt="Medinsight AI Logo">
+</header>
+
+<section class="auth-section">
+    <div class="auth-container">
+        <h2 class="auth-title">Sign up</h2>
+
+        <p class="error-msg"   id="signup-error"   style="display:none;"></p>
+        <p class="success-msg" id="signup-success" style="display:none;"></p>
+
+        <form class="auth-form" id="signupForm">
+            <input type="text"     id="signup-name"     placeholder="Enter full name"   required>
+            <input type="email"    id="signup-email"    placeholder="Enter email"        required>
+            <input type="tel"      id="signup-phone"    placeholder="Enter phone number" required>
+            <input type="password" id="signup-password" placeholder="Enter password"     required minlength="6">
+
+            <label class="checkbox-label">
+                <input type="checkbox" id="terms-box" required>
+                I agree to the <a href="/terms">Terms &amp; Conditions</a>
+                and understand that this application does not provide medical diagnosis or treatment.
+            </label>
+
+            <button type="submit" class="auth-submit-btn" id="signup-btn">Sign up</button>
+        </form>
+
+        <p class="auth-switch">Already have an account? <a href="/login">Login</a></p>
+    </div>
+</section>
+
+<footer>
+    <div class="page-links">
+        <a href="/about">About us</a>
+        <a href="/ethics">Ethical and Medical Disclaimer</a>
+        <a href="/terms">Terms and Conditions</a>
+        <a href="/contact">Contact / Support</a>
+    </div>
+    <p class="copyright">
+        2026 Health Companion | Academic Mini Project<br>
+        Built for educational and research purposes only
+    </p>
+</footer>
+
+<script>
+const SUPABASE_URL      = '{{ supabase_url }}';
+const SUPABASE_ANON_KEY = '{{ supabase_anon_key }}';
+
+const { createClient } = supabase;
+const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// If already logged in, go straight to the dashboard
+(async () => {
+    const { data: { session } } = await _supabase.auth.getSession();
+    if (session) window.location.href = '/landingpage';
+})();
+
+document.getElementById('signupForm').addEventListener('submit', async function (e) {
+    e.preventDefault();
+
+    const name     = document.getElementById('signup-name').value.trim();
+    const email    = document.getElementById('signup-email').value.trim();
+    const phone    = document.getElementById('signup-phone').value.trim();
+    const password = document.getElementById('signup-password').value;
+
+    const errorEl   = document.getElementById('signup-error');
+    const successEl = document.getElementById('signup-success');
+    const btn       = document.getElementById('signup-btn');
+
+    errorEl.style.display   = 'none';
+    successEl.style.display = 'none';
+    btn.disabled            = true;
+    btn.textContent         = 'Creating account...';
+
+    const { data, error } = await _supabase.auth.signUp({
+        email,
+        password,
+        options: {
+            data: { full_name: name, phone: phone }
+        }
+    });
+
+    btn.disabled    = false;
+    btn.textContent = 'Sign up';
+
+    if (error) {
+        errorEl.textContent   = error.message;
+        errorEl.style.display = 'block';
+        return;
+    }
+
+    // Success — show message then redirect to login
+    successEl.textContent   = 'Account created! Redirecting to login...';
+    successEl.style.display = 'block';
+    setTimeout(() => { window.location.href = '/login'; }, 1500);
+});
+</script>
+
+</body>
+</html>

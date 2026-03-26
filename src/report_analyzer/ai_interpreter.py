@@ -1,26 +1,20 @@
 import os
-from groq import Groq
 from dotenv import load_dotenv
+from groq import Groq
 
+# Load .env file
 load_dotenv()
+
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
-if not GROQ_API_KEY or GROQ_API_KEY == "YOUR_GROQ_API_KEY_HERE":
+if not GROQ_API_KEY:
     print("\n" + "=" * 60)
     print("❌ ERROR: GROQ_API_KEY not configured!")
     print("=" * 60)
-    print("\n📋 Please follow these steps:\n")
-    print("1. Get your API key from: https://console.groq.com/")
-    print("2. Set it as an environment variable:\n")
-    print("   Windows (CMD):")
-    print("     set GROQ_API_KEY=gsk_your_key_here\n")
-    print("   Windows (PowerShell):")
-    print("     $env:GROQ_API_KEY='gsk_your_key_here'\n")
-    print("   Mac/Linux:")
-    print("     export GROQ_API_KEY=gsk_your_key_here\n")
-    print("3. Run your app again: python app.py")
+    print("\n📋 Please add it to your .env file:\n")
+    print("GROQ_API_KEY=your_key_here\n")
     print("=" * 60 + "\n")
-    raise ValueError("GROQ_API_KEY environment variable is not set")
+    raise ValueError("GROQ_API_KEY not set")
 
 client = Groq(api_key=GROQ_API_KEY)
 

@@ -4,16 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Scan Report Analyzer - Medinsight AI</title>
-    <link rel="stylesheet" href="../static/style.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@200..800&display=swap" rel="stylesheet">
 </head>
 <body>
 
 <header>
-    <img class="logo" src="../static/assets/medinsight ai logo nobg 1.png" alt="Medinsight AI Logo">
+    <img class="logo" src="{{ url_for('static', filename='assets/medinsight ai logo nobg 1.png') }}" alt="Medinsight AI Logo">
     <div class="profile-wrapper">
-        <img class="dp" src="../static/assets/account 1.png" alt="Profile" id="profileBtn">
+        <img class="dp" src="{{ url_for('static', filename='assets/account 1.png') }}" alt="Profile" id="profileBtn">
         <div class="profile-popup" id="profilePopup">
             <p class="profile-name">Anagha</p>
             <p class="profile-username">@anagha_k</p>
@@ -21,7 +21,6 @@
         </div>
     </div>
 </header>
-<div style="height: 50px"></div>
 
 <section class="analyzer-section">
     <h1 class="page-title">Scan Report Analyzer</h1>
@@ -29,7 +28,7 @@
     
     <div class="analyzer-container">
         <div class="upload-area" id="uploadArea">
-            <img src="../static/assets/x-ray_icon.png" alt="" class="upload-icon">
+            <img class="upload-icon" src="{{ url_for('static', filename='assets/medical_report_icon.png') }}" alt="Upload icon">
             <p class="upload-text">Upload scan report in jpg, jpeg or png format here</p>
             <input type="file" id="scanFile" accept=".jpg,.jpeg,.png" hidden>
             <button class="upload-btn" onclick="document.getElementById('scanFile').click()">Upload</button>

@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medical Report Analyzer - Medinsight AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@200..800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        .abnormal-item {
+            background: #f8f9fa;
+            border-left: 4px solid #dc3545;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .abnormal-item.low  { border-left-color: #0dcaf0; }
+        .abnormal-item.high { border-left-color: #dc3545; }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .status-badge.low  { background: #cff4fc; color: #055160; }
+        .status-badge.high { background: #f8d7da; color: #842029; }
+
+        .ai-explanation {
+            background: #e7f3ff;
+            border-left: 4px solid #0066cc;
+            padding: 20px;
+            border-radius: 5px;
+            line-height: 1.8;
+            margin-top: 15px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+        .ai-explanation strong { color: #0066cc; font-size: 16px; }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 20px; height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #0066cc;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+        @keyframes spin { 0%{transform:rotate(0deg)} 100%{transform:rotate(360deg)} }
+
+        .success-message {
+            background: #d1e7dd;
+            color: #0f5132;
+            border: 1px solid #badbcc;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            text-align: center;
+        }
+        .test-value  { font-size: 18px; font-weight: 600; color: #333; }
+        .test-name   { font-size: 16px; font-weight: 600; color: #0066cc; margin-bottom: 8px; }
+        .normal-range { color: #666; font-size: 14px; }
+
+        .language-badge {
+            display: inline-block;
+            background: #0066cc;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 15px;
+            font-size: 12px;
+            margin-bottom: 15px;
+        }
+
+        /* ── Trend tracking section ── */
+        .trend-opt-section {
+            background: #f0f6ff;
+            border: 1.5px solid #c0d8ff;
+            border-radius: 10px;
+            padding: 16px 20px;
+            margin: 16px 0;
+        }
+        .trend-opt-section .checkbox-label {
+            font-weight: 500;
+            color: #0b1957;
+            font-size: 0.95rem;
+        }
+
+        /* patient dropdown row — hidden by default */
+        #patientRow {
+            display: none;
+            margin-top: 14px;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        #patientRow.visible { display: flex; }
+
+        #patientSelect {
+            flex: 1;
+            min-width: 180px;
+            padding: 9px 12px;
+            border: 1.5px solid #c0d8ff;
+            border-radius: 8px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.9rem;
+            background: white;
+            color: #333;
+        }
+        #patientSelect:focus { outline: none; border-color: #0066cc; }
+
+        .add-patient-inline-btn {
+            padding: 9px 16px;
+            background: #0b1957;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.88rem;
+            font-weight: 500;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .add-patient-inline-btn:hover { background: #1a3a9e; }
+
+        .patient-required-msg {
+            color: #c0392b;
+            font-size: 0.82rem;
+            margin-top: 6px;
+            display: none;
+        }
+
+        /* ── Inline add patient mini-modal ── */
+        .inline-add-box {
+            display: none;
+            background: white;
+            border: 1.5px solid #c0d8ff;
+            border-radius: 10px;
+            padding: 14px 18px;
+            margin-top: 10px;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .inline-add-box.visible { display: flex; }
+        .inline-add-box input {
+            flex: 1;
+            min-width: 160px;
+            padding: 8px 12px;
+            border: 1.5px solid #ddd;
+            border-radius: 8px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.9rem;
+        }
+        .inline-add-box input:focus { outline: none; border-color: #0066cc; }
+        .inline-confirm-btn {
+            padding: 8px 16px;
+            background: #0066cc;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.88rem;
+            cursor: pointer;
+        }
+        .inline-cancel-btn {
+            padding: 8px 14px;
+            background: #f0f0f0;
+            color: #555;
+            border: none;
+            border-radius: 8px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.88rem;
+            cursor: pointer;
+        }
+
+        /* ── Save confirmation banner ── */
+        .save-banner {
+            display: none;
+            background: #d1e7dd;
+            border: 1px solid #badbcc;
+            color: #0f5132;
+            padding: 12px 18px;
+            border-radius: 8px;
+            margin-top: 16px;
+            font-size: 0.9rem;
+        }
+        .save-banner.visible { display: block; }
+    </style>
+</head>
+<body>
+
+<header>
+    <img class="logo" src="{{ url_for('static', filename='assets/medinsight ai logo nobg 1.png') }}" alt="Medinsight AI Logo">
+    <div class="profile-wrapper">
+        <img class="dp" src="{{ url_for('static', filename='assets/account 1.png') }}" alt="Profile" id="profileBtn">
+        <div class="profile-popup" id="profilePopup">
+            <p class="profile-name"     id="popup-name">—</p>
+            <p class="profile-username" id="popup-email"></p>
+        </div>
+    </div>
+</header>
+
+<section class="analyzer-section">
+    <h1 class="page-title">Medical Report Analyzer</h1>
+    <p class="page-subtitle">Turn complex medical reports into simple, understandable insights.</p>
+
+    <div class="analyzer-container">
+
+        <!-- Upload Area -->
+        <div class="upload-area" onclick="document.getElementById('reportFile').click()">
+            <img class="upload-icon" src="{{ url_for('static', filename='assets/medical_report_icon.png') }}" alt="Upload icon">
+            <p class="upload-text" id="uploadText">Upload medical report (jpg / pdf)</p>
+            <input type="file" id="reportFile" accept=".jpg,.jpeg,.pdf" hidden>
+        </div>
+
+        <!-- Language selector -->
+        <div class="form-row">
+            <select class="form-select" id="languageSelect">
+                <option value="english">English</option>
+                <option value="hindi">हिंदी (Hindi)</option>
+                <option value="bengali">বাংলা (Bengali)</option>
+                <option value="telugu">తెలుగు (Telugu)</option>
+                <option value="marathi">मराठी (Marathi)</option>
+                <option value="tamil">தமிழ் (Tamil)</option>
+                <option value="urdu">اردو (Urdu)</option>
+                <option value="gujarati">ગુજરાતી (Gujarati)</option>
+                <option value="kannada">ಕನ್ನಡ (Kannada)</option>
+                <option value="malayalam">മലയാളം (Malayalam)</option>
+                <option value="odia">ଓଡ଼ିଆ (Odia)</option>
+            </select>
+        </div>
+
+        <!-- ── Trend tracking opt-in ─────────────────────────────────────── -->
+        <div class="trend-opt-section">
+            <label class="checkbox-label">
+                <input type="checkbox" id="trendCheckbox">
+                Save this report for trend tracking and health history analysis
+            </label>
+
+            <!-- Patient selector — shown only when checkbox is checked -->
+            <div id="patientRow">
+                <select id="patientSelect">
+                    <option value="">— Select patient —</option>
+                </select>
+                <button class="add-patient-inline-btn" id="addPatientInlineBtn" type="button">+ New Patient</button>
+            </div>
+            <p class="patient-required-msg" id="patientRequiredMsg">Please select a patient to enable trend tracking.</p>
+
+            <!-- Inline add-patient form -->
+            <div class="inline-add-box" id="inlineAddBox">
+                <input type="text" id="inlinePatientName" placeholder="Enter patient name" maxlength="80">
+                <button class="inline-confirm-btn" id="inlineConfirmBtn" type="button">Add</button>
+                <button class="inline-cancel-btn"  id="inlineCancelBtn"  type="button">Cancel</button>
+            </div>
+        </div>
+
+        <div class="upload-btn-row">
+            <button class="upload-btn" id="uploadBtn" disabled>Upload &amp; Analyze</button>
+        </div>
+
+        <!-- Save confirmation -->
+        <div class="save-banner" id="saveBanner"></div>
+
+        <!-- RESULTS SECTION -->
+        <div class="result-box" id="resultBox" style="display:none;">
+            <div id="languageBadge" class="language-badge"></div>
+            <h3>📋 Your Test Results</h3>
+            <div id="abnormalList"></div>
+            <h3 style="margin-top:30px;">💡 What This Means For You</h3>
+            <div id="aiExplanation"></div>
+        </div>
+
+    </div>
+</section>
+
+<footer>
+    <p class="copyright">2026 Medinsight AI | Built for educational and research purposes only</p>
+</footer>
+
+<script>
+// ─── Supabase ─────────────────────────────────────────────────────────────────
+const SUPABASE_URL      = '{{ supabase_url }}';
+const SUPABASE_ANON_KEY = '{{ supabase_anon_key }}';
+const { createClient }  = supabase;
+const _supabase         = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let currentUser  = null;
+let patients     = [];       // [{id, name}]
+let lastResult   = null;     // full parsed result from backend
+
+// ─── Auth ─────────────────────────────────────────────────────────────────────
+(async () => {
+    const { data: { session } } = await _supabase.auth.getSession();
+    if (!session) { window.location.href = '/login'; return; }
+    currentUser = session.user;
+
+    // Load profile for popup
+    const { data: profile } = await _supabase
+        .from('profiles').select('full_name').eq('id', currentUser.id).single();
+    if (profile) {
+        document.getElementById('popup-name').textContent  = profile.full_name;
+        document.getElementById('popup-email').textContent = currentUser.email;
+    }
+
+    await loadPatients();
+})();
+
+// ─── Profile popup ────────────────────────────────────────────────────────────
+document.getElementById('profileBtn').addEventListener('click', e => {
+    e.stopPropagation();
+    document.getElementById('profilePopup').classList.toggle('show');
+});
+document.addEventListener('click', () => document.getElementById('profilePopup').classList.remove('show'));
+document.getElementById('profilePopup').addEventListener('click', e => e.stopPropagation());
+
+// ─── Load patients from Supabase ──────────────────────────────────────────────
+async function loadPatients() {
+    if (!currentUser) return;
+    const { data, error } = await _supabase
+        .from('patients')
+        .select('id, name')
+        .eq('owner_id', currentUser.id)
+        .order('created_at', { ascending: true });
+
+    patients = data || [];
+    rebuildPatientDropdown();
+}
+
+function rebuildPatientDropdown() {
+    const sel = document.getElementById('patientSelect');
+    // Keep the placeholder
+    sel.innerHTML = '<option value="">— Select patient —</option>';
+    patients.forEach(p => {
+        const opt = document.createElement('option');
+        opt.value       = p.id;
+        opt.textContent = p.name;
+        sel.appendChild(opt);
+    });
+}
+
+// ─── Trend-tracking checkbox ──────────────────────────────────────────────────
+document.getElementById('trendCheckbox').addEventListener('change', function () {
+    const row = document.getElementById('patientRow');
+    const msg = document.getElementById('patientRequiredMsg');
+    if (this.checked) {
+        row.classList.add('visible');
+    } else {
+        row.classList.remove('visible');
+        msg.style.display = 'none';
+        document.getElementById('inlineAddBox').classList.remove('visible');
+    }
+});
+
+// ─── Inline add-patient ───────────────────────────────────────────────────────
+document.getElementById('addPatientInlineBtn').addEventListener('click', () => {
+    document.getElementById('inlineAddBox').classList.add('visible');
+    document.getElementById('inlinePatientName').value = '';
+    setTimeout(() => document.getElementById('inlinePatientName').focus(), 50);
+});
+
+document.getElementById('inlineCancelBtn').addEventListener('click', () => {
+    document.getElementById('inlineAddBox').classList.remove('visible');
+});
+
+document.getElementById('inlineConfirmBtn').addEventListener('click', async () => {
+    const name = document.getElementById('inlinePatientName').value.trim();
+    if (!name) return;
+
+    if (patients.length >= 5) {
+        alert('You have reached the 5-patient limit.');
+        return;
+    }
+
+    const { data, error } = await _supabase
+        .from('patients')
+        .insert({ owner_id: currentUser.id, name })
+        .select()
+        .single();
+
+    if (error) { alert('Could not add patient. Try again.'); return; }
+
+    patients.push({ id: data.id, name: data.name });
+    rebuildPatientDropdown();
+    document.getElementById('patientSelect').value = data.id;
+    document.getElementById('inlineAddBox').classList.remove('visible');
+    document.getElementById('patientRequiredMsg').style.display = 'none';
+});
+
+document.getElementById('inlinePatientName').addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('inlineConfirmBtn').click();
+});
+
+// ─── File selection ───────────────────────────────────────────────────────────
+const fileInput  = document.getElementById('reportFile');
+const uploadBtn  = document.getElementById('uploadBtn');
+const uploadText = document.getElementById('uploadText');
+
+fileInput.addEventListener('change', () => {
+    if (fileInput.files[0]) {
+        uploadText.textContent = '✓ Selected: ' + fileInput.files[0].name;
+        uploadBtn.disabled = false;
+    }
+});
+
+// ─── Upload & Analyze ─────────────────────────────────────────────────────────
+uploadBtn.addEventListener('click', async () => {
+    const selectedFile = fileInput.files[0];
+    if (!selectedFile) return;
+
+    const wantsTrend   = document.getElementById('trendCheckbox').checked;
+    const patientId    = document.getElementById('patientSelect').value;
+    const requiredMsg  = document.getElementById('patientRequiredMsg');
+
+    // Validate: if trend tracking selected, patient must be chosen
+    if (wantsTrend && !patientId) {
+        requiredMsg.style.display = 'block';
+        document.getElementById('patientSelect').focus();
+        return;
+    }
+    requiredMsg.style.display = 'none';
+
+    const selectedLanguage = document.getElementById('languageSelect').value;
+
+    uploadText.innerHTML = '<span class="loading-spinner"></span>Analyzing your report...';
+    uploadBtn.disabled   = true;
+    uploadBtn.textContent = 'Analyzing...';
+
+    const resultBox    = document.getElementById('resultBox');
+    const abnormalList = document.getElementById('abnormalList');
+    const aiExplanation = document.getElementById('aiExplanation');
+    const languageBadge = document.getElementById('languageBadge');
+    const saveBanner    = document.getElementById('saveBanner');
+
+    saveBanner.classList.remove('visible');
+
+    try {
+        const formData = new FormData();
+        formData.append('file', selectedFile);
+        formData.append('language', selectedLanguage);
+
+        const response = await fetch('/upload-report', { method: 'POST', body: formData });
+        if (!response.ok) throw new Error('Server error.');
+
+        const result = await response.json();
+        lastResult = result;
+
+        // ── Save to Supabase if trend tracking opted in ───────────────────
+        if (wantsTrend && patientId) {
+            await saveReportToSupabase(patientId, result);
+        }
+
+        // ── Render results ────────────────────────────────────────────────
+        resultBox.style.display = 'block';
+        abnormalList.innerHTML  = '';
+        aiExplanation.innerHTML = '';
+
+        const languageNames = {
+            english:'🇬🇧 English', hindi:'🇮🇳 हिंदी', bengali:'🇮🇳 বাংলা',
+            telugu:'🇮🇳 తెలుగు', marathi:'🇮🇳 मराठी', tamil:'🇮🇳 தமிழ்',
+            urdu:'🇵🇰 اردو', gujarati:'🇮🇳 ગુજરાતી', kannada:'🇮🇳 ಕನ್ನಡ',
+            malayalam:'🇮🇳 മലയാളം', odia:'🇮🇳 ଓଡ଼ିଆ'
+        };
+        languageBadge.textContent = `Explanations in: ${languageNames[selectedLanguage] || 'English'}`;
+
+        const abnormalValues = result.abnormal_values || {};
+
+        if (Object.keys(abnormalValues).length === 0) {
+            const msgs = {
+                english: { title:'🎉 Great News!', message:'All your test values are within the normal range.', note:'No follow-up action required at this time.' },
+                hindi:   { title:'🎉 Bahut Badhiya!', message:'Aapki saari test values normal range mein hain.', note:'Is samay koi follow-up action ki zaroorat nahi hai.' },
+                malayalam:{ title:'🎉 Valare Nannayi!', message:'Ningalude ellaa test values-um normal range-il aanu.', note:'Ippol follow-up action aavashyamilla.' }
+            };
+            const m = msgs[selectedLanguage] || msgs.english;
+            abnormalList.innerHTML = `<div class="success-message"><h3>${m.title}</h3><p>${m.message}</p><p style="margin-top:10px;font-size:14px;">${m.note}</p></div>`;
+            uploadText.textContent = '✓ Analysis complete - All normal!';
+        } else {
+            uploadText.textContent = `✓ Analysis complete - ${Object.keys(abnormalValues).length} value(s) need attention`;
+            for (const test in abnormalValues) {
+                const item = abnormalValues[test];
+                const sc   = item.status.toLowerCase();
+                const div  = document.createElement('div');
+                div.className = `abnormal-item ${sc}`;
+                div.innerHTML = `
+                    <div class="test-name">${test}</div>
+                    <div class="test-value">Your Value: ${item.value}</div>
+                    <div class="normal-range">Normal Range: ${item.normal_range}</div>
+                    <span class="status-badge ${sc}">${item.status}</span>`;
+                abnormalList.appendChild(div);
+            }
+            for (const test in abnormalValues) {
+                const item = abnormalValues[test];
+                const d = document.createElement('div');
+                d.className = 'ai-explanation';
+                d.innerHTML = `<strong>📊 ${test}:</strong><br><br>${item.explanation || 'Explanation not available.'}`;
+                aiExplanation.appendChild(d);
+            }
+        }
+
+        resultBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+    } catch (err) {
+        console.error(err);
+        alert('⚠️ Something went wrong. Please try again.');
+        uploadText.textContent = '❌ Analysis failed - Please try again';
+    } finally {
+        uploadBtn.disabled    = false;
+        uploadBtn.textContent = 'Upload & Analyze';
+        fileInput.value       = '';
+    }
+});
+
+// ─── Save ALL values to Supabase ──────────────────────────────────────────────
+async function saveReportToSupabase(patientId, result) {
+    const saveBanner = document.getElementById('saveBanner');
+
+    // result.all_values comes from the backend (all parsed values, not just abnormal)
+    // result.abnormal_values is the subset with status flags
+    const allValues     = result.all_values     || {};
+    const abnormalValues = result.abnormal_values || {};
+
+    // Build a unified metrics object: merge all_values with status from abnormal_values
+    const metrics = {};
+    for (const [test, info] of Object.entries(allValues)) {
+        const abnormal = abnormalValues[test];
+        metrics[test] = {
+            value:      info.value,
+            unit:       info.unit       || '',
+            normal:     info.normal_range_arr || null,   // [min, max] array
+            status:     abnormal ? abnormal.status : 'normal'
+        };
+    }
+
+    // If all_values is empty (backend not yet updated), fall back to abnormal_values only
+    if (Object.keys(metrics).length === 0) {
+        for (const [test, info] of Object.entries(abnormalValues)) {
+            metrics[test] = {
+                value:  info.value,
+                unit:   info.unit || '',
+                normal: info.normal_range_arr || null,
+                status: info.status
+            };
+        }
+    }
+
+    const today = new Date().toISOString().split('T')[0];
+
+    const { error } = await _supabase.from('health_reports').insert({
+        patient_id:  patientId,
+        owner_id:    currentUser.id,
+        report_date: today,
+        report_type: 'Blood Test',
+        metrics:     metrics          // stored as JSONB
+    });
+
+    if (error) {
+        console.error('Save error:', error);
+        saveBanner.textContent = '⚠️ Report analyzed but could not be saved for trend tracking.';
+        saveBanner.style.background = '#fff3cd';
+        saveBanner.style.color = '#856404';
+        saveBanner.style.border = '1px solid #ffc107';
+    } else {
+        const patientName = patients.find(p => p.id === patientId)?.name || 'patient';
+        saveBanner.textContent = `✅ Report saved to ${patientName}'s health history. View trends in Trend Tracking.`;
+        saveBanner.style.background = '#d1e7dd';
+        saveBanner.style.color = '#0f5132';
+        saveBanner.style.border = '1px solid #badbcc';
+    }
+    saveBanner.classList.add('visible');
+}
+</script>
+
+</body>
+</html>

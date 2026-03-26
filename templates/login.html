@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Medinsight AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@200..800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+<header>
+    <img class="logo" src="{{ url_for('static', filename='assets/medinsight ai logo nobg 1.png') }}" alt="Medinsight AI Logo">
+</header>
+
+<section class="auth-section">
+    <div class="auth-container">
+        <h2 class="auth-title">Login</h2>
+
+        <p class="success-msg" id="login-success" style="display:none;"></p>
+        <p class="error-msg"   id="login-error"   style="display:none;"></p>
+
+        <form class="auth-form" id="loginForm">
+            <input type="email"    id="login-email" placeholder="Enter email"    required>
+            <input type="password" id="login-pass"  placeholder="Enter password" required>
+            <button type="submit" class="auth-submit-btn" id="login-btn">Login</button>
+        </form>
+
+        <p class="auth-switch">Don't have an account? <a href="/signup">Sign up</a></p>
+    </div>
+</section>
+
+<footer>
+    <div class="page-links">
+        <a href="/about">About us</a>
+        <a href="/ethics">Ethical and Medical Disclaimer</a>
+        <a href="/terms">Terms and Conditions</a>
+        <a href="/contact">Contact / Support</a>
+    </div>
+    <p class="copyright">
+        2026 Health Companion | Academic Mini Project<br>
+        Built for educational and research purposes only
+    </p>
+</footer>
+
+<script>
+const SUPABASE_URL      = '{{ supabase_url }}';
+const SUPABASE_ANON_KEY = '{{ supabase_anon_key }}';
+
+const { createClient } = supabase;
+const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// If already logged in, go straight to the dashboard — not back to index
+(async () => {
+    const { data: { session } } = await _supabase.auth.getSession();
+    if (session) window.location.href = '/landingpage';
+})();
+
+// Show banner if arriving from signup
+const params = new URLSearchParams(window.location.search);
+if (params.get('from') === 'signup') {
+    const s = document.getElementById('login-success');
+    s.textContent   = 'Account created successfully! Please log in.';
+    s.style.display = 'block';
+}
+
+document.getElementById('loginForm').addEventListener('submit', async function (e) {
+    e.preventDefault();
+
+    const email    = document.getElementById('login-email').value.trim();
+    const password = document.getElementById('login-pass').value;
+    const errorEl  = document.getElementById('login-error');
+    const btn      = document.getElementById('login-btn');
+
+    errorEl.style.display = 'none';
+    btn.disabled          = true;
+    btn.textContent       = 'Logging in...';
+
+    const { data, error } = await _supabase.auth.signInWithPassword({ email, password });
+
+    btn.disabled    = false;
+    btn.textContent = 'Login';
+
+    if (error) {
+        if (error.message.toLowerCase().includes('email not confirmed')) {
+            errorEl.textContent = 'Email not confirmed. Please check your inbox, or contact support.';
+        } else {
+            errorEl.textContent = 'Invalid email or password.';
+        }
+        errorEl.style.display = 'block';
+        return;
+    }
+
+    // Successful login → go to the logged-in dashboard
+    window.location.href = '/landingpage';
+});
+</script>
+
+</body>
+</html>
