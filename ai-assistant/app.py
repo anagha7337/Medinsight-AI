@@ -92,7 +92,6 @@ try:
     llm = ChatGoogleGenerativeAI(
         temperature=0.4,
         model="models/gemini-2.5-flash",
-        max_output_tokens=200,
         google_api_key=os.getenv("GOOGLE_API_KEY")
     )
 
