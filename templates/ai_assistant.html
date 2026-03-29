@@ -7,6 +7,76 @@
 
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* Custom confirm dialog — scoped only to this overlay */
+        #confirmOverlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.4);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+        }
+        #confirmOverlay.show {
+            display: flex;
+        }
+        #confirmBox {
+            background: white;
+            border-radius: 20px;
+            padding: 32px 28px 24px;
+            max-width: 360px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 16px 40px rgba(0,0,0,0.2);
+            font-family: "Poppins", sans-serif;
+        }
+        #confirmBox .confirm-icon {
+            font-size: 40px;
+            margin-bottom: 12px;
+        }
+        #confirmBox p {
+            font-size: 16px;
+            font-weight: 600;
+            color: #0b1957;
+            margin: 0 0 6px;
+        }
+        #confirmBox span {
+            font-size: 13px;
+            color: #888;
+        }
+        #confirmBox .confirm-btns {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+            justify-content: center;
+        }
+        #confirmBox .confirm-btns button {
+            padding: 10px 28px;
+            border-radius: 12px;
+            border: none;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: "Poppins", sans-serif;
+            transition: all 0.2s;
+        }
+        #confirmCancel {
+            background: #f0f0f0;
+            color: #555;
+        }
+        #confirmCancel:hover {
+            background: #e0e0e0;
+        }
+        #confirmOk {
+            background: #e53935;
+            color: white;
+        }
+        #confirmOk:hover {
+            background: #c62828;
+        }
+    </style>
 </head>
 <body>
 
@@ -14,6 +84,18 @@
     <img class="logo" src="../static/assets/medinsight ai logo nobg 1.png" alt="Medinsight AI Logo">
 </header>
 
+<!-- Custom confirm dialog -->
+<div id="confirmOverlay">
+    <div id="confirmBox">
+        <div class="confirm-icon">🗑️</div>
+        <p>Clear chat history?</p>
+        <span>This cannot be undone.</span>
+        <div class="confirm-btns">
+            <button id="confirmCancel">Cancel</button>
+            <button id="confirmOk">Clear</button>
+        </div>
+    </div>
+</div>
 
 <section class="chat-section">
     <h1 class="page-title">AI Health Query Assistant</h1>
@@ -88,6 +170,10 @@ const chatMessages = document.getElementById('chatMessages');
 const clearChatBtn = document.getElementById('clearChatBtn');
 const suggestions = document.getElementById('suggestions');
 
+const confirmOverlay = document.getElementById('confirmOverlay');
+const confirmOk = document.getElementById('confirmOk');
+const confirmCancel = document.getElementById('confirmCancel');
+
 // Send message on button click
 sendBtn.addEventListener('click', () => sendMessage());
 
@@ -105,18 +191,32 @@ chatInput.addEventListener('input', function() {
     this.style.height = Math.min(this.scrollHeight, 120) + 'px';
 });
 
-// Clear chat
+// Clear chat — show custom dialog
 clearChatBtn.addEventListener('click', () => {
-    if (confirm('Are you sure you want to clear the chat history?')) {
-        chatMessages.innerHTML = `
-            <div class="chat-placeholder">
-                <div class="placeholder-icon">💬</div>
-                <p>Ask a health question to understand symptoms, conditions, or general health topics</p>
-                <p class="placeholder-subtext">Click a suggestion above or type your question below</p>
-            </div>
-        `;
-        clearChatBtn.style.display = 'none';
-        suggestions.style.display = 'flex';
+    confirmOverlay.classList.add('show');
+});
+
+confirmCancel.addEventListener('click', () => {
+    confirmOverlay.classList.remove('show');
+});
+
+confirmOk.addEventListener('click', () => {
+    confirmOverlay.classList.remove('show');
+    chatMessages.innerHTML = `
+        <div class="chat-placeholder">
+            <div class="placeholder-icon">💬</div>
+            <p>Ask a health question to understand symptoms, conditions, or general health topics</p>
+            <p class="placeholder-subtext">Click a suggestion above or type your question below</p>
+        </div>
+    `;
+    clearChatBtn.style.display = 'none';
+    suggestions.style.display = 'flex';
+});
+
+// Close overlay on backdrop click
+confirmOverlay.addEventListener('click', (e) => {
+    if (e.target === confirmOverlay) {
+        confirmOverlay.classList.remove('show');
     }
 });
 
@@ -274,7 +374,6 @@ function sendMessage(messageFromChip = null) {
             <span class="btn-text">Send</span>
             <span class="btn-icon">→</span>
         `;
-        chatInput.focus();
     })
     .catch(() => {
         aiMsg.innerHTML = `
@@ -296,21 +395,6 @@ function escapeHtml(text) {
     div.textContent = text;
     return div.innerHTML;
 }
-
-// Auto-focus on load
-window.addEventListener('load', () => chatInput.focus());
-
-// Auto-hide header on scroll
-let lastScrollTop = 0;
-const header = document.querySelector('header');
-
-window.addEventListener('scroll', () => {
-    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-    if (Math.abs(scrollTop - lastScrollTop) > 10) {
-        header.classList.toggle('hidden', scrollTop > lastScrollTop && scrollTop > 80);
-        lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
-    }
-}, false);
 </script>
 
 </body>
