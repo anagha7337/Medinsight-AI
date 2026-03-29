@@ -1,10 +1,25 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Error</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error - Medinsight AI</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
-    <h2>Something went wrong ⚠️</h2>
-    <p>{{ message }}</p>
+    <header>
+        <img class="logo" src="{{ url_for('static', filename='assets/medinsight ai logo nobg 1.png') }}" alt="Medinsight AI Logo">
+    </header>
+
+    <p class="subpage-headings">Something went wrong ⚠️</p>
+
+    <p class="text-body">
+        {{ message }}<br><br>
+        <a href="/landingpage">← Back to home</a>
+    </p>
 </body>
 </html>

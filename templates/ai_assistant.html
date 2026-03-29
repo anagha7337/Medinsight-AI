@@ -12,16 +12,6 @@
 
 <header>
     <img class="logo" src="../static/assets/medinsight ai logo nobg 1.png" alt="Medinsight AI Logo">
-
-    <div class="profile-wrapper">
-        <img class="dp" src="../static/assets/account 1.png" alt="Profile" id="profileBtn">
-
-        <div class="profile-popup" id="profilePopup">
-            <p class="profile-name">Anagha</p>
-            <p class="profile-username">@anagha_k</p>
-            <button class="add-patient-btn">Add Patient</button>
-        </div>
-    </div>
 </header>
 
 
@@ -77,10 +67,10 @@
 
 <footer>
     <div class="page-links">
-        <a href="about_us.html">About us</a>
-        <a href="ethics.html">Ethical and Medical Disclaimer</a>
-        <a href="terms.html">Terms and Conditions</a>
-        <a href="contact.html">Contact / Support</a>
+        <a href="/about">About us</a>
+        <a href="/ethics">Ethical and Medical Disclaimer</a>
+        <a href="/terms">Terms and Conditions</a>
+        <a href="/contact">Contact / Support</a>
     </div>
 
     <p class="copyright">
@@ -91,19 +81,6 @@
 
 
 <script>
-// Profile dropdown
-const profileBtn = document.getElementById("profileBtn");
-const profilePopup = document.getElementById("profilePopup");
-
-profileBtn.addEventListener("click", (e) => {
-    e.stopPropagation();
-    profilePopup.classList.toggle("show");
-});
-
-document.addEventListener("click", () => {
-    profilePopup.classList.remove("show");
-});
-
 // Chat functionality
 const chatInput = document.getElementById('chatInput');
 const sendBtn = document.getElementById('sendBtn');
@@ -201,7 +178,7 @@ function addCopyButton(messageElement, textContent) {
     copyBtn.innerHTML = `
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2 2v1"></path>
         </svg>
     `;
     copyBtn.title = "Copy to clipboard";

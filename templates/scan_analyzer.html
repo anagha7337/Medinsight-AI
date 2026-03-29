@@ -12,14 +12,6 @@
 
 <header>
     <img class="logo" src="{{ url_for('static', filename='assets/medinsight ai logo nobg 1.png') }}" alt="Medinsight AI Logo">
-    <div class="profile-wrapper">
-        <img class="dp" src="{{ url_for('static', filename='assets/account 1.png') }}" alt="Profile" id="profileBtn">
-        <div class="profile-popup" id="profilePopup">
-            <p class="profile-name">Anagha</p>
-            <p class="profile-username">@anagha_k</p>
-            <button class="add-patient-btn">Add Patient</button>
-        </div>
-    </div>
 </header>
 
 <section class="analyzer-section">
@@ -28,7 +20,7 @@
     
     <div class="analyzer-container">
         <div class="upload-area" id="uploadArea">
-            <img class="upload-icon" src="{{ url_for('static', filename='assets/medical_report_icon.png') }}" alt="Upload icon">
+            <img class="upload-icon" src="{{ url_for('static', filename='assets/x-ray_icon.png') }}" alt="Upload icon">
             <p class="upload-text">Upload scan report in jpg, jpeg or png format here</p>
             <input type="file" id="scanFile" accept=".jpg,.jpeg,.png" hidden>
             <button class="upload-btn" onclick="document.getElementById('scanFile').click()">Upload</button>
@@ -39,12 +31,6 @@
                 <option value="english">English</option>
                 <option value="hindi">Hindi</option>
                 <option value="malayalam">Malayalam</option>
-            </select>
-            
-            <select class="form-select" id="patientSelect">
-                <option value="">Select Patient (Optional)</option>
-                <option value="patient1">Patient 1</option>
-                <option value="patient2">Patient 2</option>
             </select>
         </div>
         

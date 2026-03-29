@@ -14,7 +14,7 @@
         .medicine-section {
             padding: 40px;
             max-width: 860px;
-            margin: 0 auto;
+            margin: 80px auto;
         }
 
         .medicine-results {
@@ -189,13 +189,6 @@
 
 <header>
     <img class="logo" src="{{ url_for('static', filename='assets/medinsight ai logo nobg 1.png') }}" alt="Medinsight AI Logo">
-    <div class="profile-wrapper">
-        <img class="dp" src="{{ url_for('static', filename='assets/account 1.png') }}" alt="Profile" id="profileBtn">
-        <div class="profile-popup" id="profilePopup">
-            <p class="profile-name"     id="popup-name">—</p>
-            <p class="profile-username" id="popup-email"></p>
-        </div>
-    </div>
 </header>
 
 <section class="medicine-section">
@@ -295,20 +288,7 @@ const _supabase         = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 (async () => {
     const { data: { session } } = await _supabase.auth.getSession();
     if (!session) { window.location.href = '/login'; return; }
-    const { data: profile } = await _supabase
-        .from('profiles').select('full_name').eq('id', session.user.id).single();
-    if (profile) {
-        document.getElementById('popup-name').textContent  = profile.full_name;
-        document.getElementById('popup-email').textContent = session.user.email;
-    }
 })();
-
-document.getElementById('profileBtn').addEventListener('click', e => {
-    e.stopPropagation();
-    document.getElementById('profilePopup').classList.toggle('show');
-});
-document.addEventListener('click', () => document.getElementById('profilePopup').classList.remove('show'));
-document.getElementById('profilePopup').addEventListener('click', e => e.stopPropagation());
 
 // ─── State ────────────────────────────────────────────────────────────────────
 let currentMedicineData = null;   // raw result from backend
