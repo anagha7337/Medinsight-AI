@@ -18,7 +18,8 @@ from src.report_analyzer.scan_interpreter import interpret_scan
 
 # AI Chatbot imports
 from src.ai_assistant.helper import download_hugging_face_embeddings
-from langchain_community.vectorstores import Pinecone
+from langchain_community.vectorstores import Pinecone as PineconeVectorStore
+from pinecone import Pinecone as PineconeClient
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.chains import create_retrieval_chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
@@ -68,9 +69,12 @@ print("🤖 Initializing AI Chatbot...")
 try:
     embeddings = download_hugging_face_embeddings()
     
-    docsearch = Pinecone.from_existing_index(
-        index_name="medicalbot",
-        embedding=embeddings
+    pc = PineconeClient(api_key=os.getenv("PINECONE_API_KEY"))
+    index = pc.Index("medicalbot")
+    docsearch = PineconeVectorStore(
+        index=index,
+        embedding=embeddings,
+        text_key="text"
     )
     
     retriever = docsearch.as_retriever(search_type="similarity", search_kwargs={"k": 1})
