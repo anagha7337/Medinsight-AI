@@ -626,6 +626,30 @@ WARNINGS: {warnings_t}"""
     except Exception as e:
         print(f"Simplify error: {e}")
         return jsonify({'success': False, 'message': str(e)}), 500
+    
+
+
+# ========================================
+# ROUTES - FOOTER PAGES
+# ========================================
+
+@app.route("/about")
+def about_page():
+    return render_template('about_us.html')
+
+@app.route("/ethics")
+def ethics_page():
+    return render_template('ethics.html')
+
+@app.route("/terms")
+def terms_page():
+    return render_template('terms.html')
+
+@app.route("/contact")
+def contact_page():
+    return render_template('contact.html')
+
+
 
 # ========================================
 # ROUTES - AI CHATBOT (RAG)
