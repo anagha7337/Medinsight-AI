@@ -284,12 +284,12 @@ header.hidden {
     font-size: 40px;
     font-weight: bold;
     margin-left: 100px;
-    margin-top: 80px;
+    margin-top: 60px;
     padding-top: 60px;
 }
 
 .text-body {
-    margin: 24px 100px 100px 100px;
+    margin: 24px 100px 60px 100px;
     font-size: 16px;
 }
 
@@ -339,6 +339,7 @@ footer {
     align-items: center;
     padding: 60px 20px;
     background-color: #f5f8fa;
+    margin-top: 80px;
 }
 
 .auth-container {
@@ -392,6 +393,7 @@ footer {
 
 .checkbox-label input[type="checkbox"] {
     margin-top: 4px;
+    flex-shrink: 0;
     cursor: pointer;
 }
 
@@ -554,7 +556,7 @@ footer {
 
 .form-row {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
     gap: 16px;
     margin-bottom: 24px;
 }
