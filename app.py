@@ -18,7 +18,7 @@ from src.report_analyzer.scan_interpreter import interpret_scan
 
 # AI Chatbot imports
 from src.ai_assistant.helper import download_hugging_face_embeddings
-from langchain_pinecone import PineconeVectorStore
+from langchain_community.vectorstores import Pinecone
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.chains import create_retrieval_chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
@@ -68,7 +68,7 @@ print("🤖 Initializing AI Chatbot...")
 try:
     embeddings = download_hugging_face_embeddings()
     
-    docsearch = PineconeVectorStore.from_existing_index(
+    docsearch = Pinecone.from_existing_index(
         index_name="medicalbot",
         embedding=embeddings
     )
