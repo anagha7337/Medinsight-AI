@@ -112,7 +112,24 @@ Guidelines:
 - 6-7 sentences total
 """
 
-def interpret_abnormality(test_name, value, normal_range, status, language="english"):    
+def interpret_abnormality(test_name, value, normal_range, status,
+                          language="english", skip_ai=False):
+    """
+    Parameters
+    ----------
+    skip_ai : bool
+        When True the value is almost certainly a parsing artifact
+        (extremely abnormal — above the extreme threshold set in range_checker).
+        We return a short neutral message instead of calling the LLM.
+    """
+    if skip_ai:
+        return (
+            f"⚠️  The parsed value for **{test_name}** ({value}) appears "
+            f"unrealistically high and may be a scan/OCR artefact. "
+            f"Please verify this value directly from the original report "
+            f"and consult your doctor."
+        )
+        
     try:
         chat_completion = client.chat.completions.create(
             messages=[

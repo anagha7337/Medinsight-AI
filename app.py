@@ -18,8 +18,7 @@ from src.report_analyzer.scan_interpreter import interpret_scan
 
 # AI Chatbot imports
 from src.ai_assistant.helper import download_hugging_face_embeddings
-from langchain_community.vectorstores import Pinecone as PineconeVectorStore
-from pinecone import Pinecone as PineconeClient
+from langchain_pinecone import PineconeVectorStore
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.chains import create_retrieval_chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
@@ -69,12 +68,9 @@ print("🤖 Initializing AI Chatbot...")
 try:
     embeddings = download_hugging_face_embeddings()
     
-    pc = PineconeClient(api_key=os.getenv("PINECONE_API_KEY"))
-    index = pc.Index("medicalbot")
-    docsearch = PineconeVectorStore(
-        index=index,
-        embedding=embeddings,
-        text_key="text"
+    docsearch = PineconeVectorStore.from_existing_index(
+        index_name="medicalbot",
+        embedding=embeddings
     )
     
     retriever = docsearch.as_retriever(search_type="similarity", search_kwargs={"k": 1})
@@ -383,7 +379,8 @@ def upload_report():
                 value=details.get("value"),
                 normal_range=details.get("normal_range"),
                 status=details.get("status"),
-                language=language
+                language=language,
+                skip_ai=details.get("skip_ai", False),   # ← NEW
             )
             details["explanation"] = explanation
             print(f"   ✅ {language.capitalize()} explanation generated for {test_name}")
@@ -678,13 +675,11 @@ def chat():
     print(f"\n💬 User: {msg}")
     try:
         response = rag_chain.invoke({"input": msg})
-        answer = str(response["answer"])
+        answer   = str(response["answer"])
         print(f"🤖 Bot: {answer[:100]}...")
         return answer
     except Exception as e:
-        print(f"❌ Chatbot Error: {type(e).__name__}: {e}")
-        import traceback
-        traceback.print_exc()
+        print(f"❌ Chatbot Error: {e}")
         return "AI service is temporarily busy. Please try again later."
 
 # ========================================
