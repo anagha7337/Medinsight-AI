@@ -71,8 +71,6 @@
 </footer>
 
 <script>
-const profileBtn = document.getElementById("profileBtn");
-const profilePopup = document.getElementById("profilePopup");
 const scanFileInput = document.getElementById('scanFile');
 const analyzeBtn = document.getElementById('analyzeBtn');
 const uploadText = document.querySelector('.upload-text');
@@ -82,16 +80,6 @@ const analysisContent = document.getElementById('analysisContent');
 const consentCheckbox = document.getElementById('consentCheckbox');
 
 let selectedFile = null;
-
-// Profile popup toggle
-profileBtn.addEventListener("click", (e) => {
-    e.stopPropagation();
-    profilePopup.classList.toggle("show");
-});
-
-document.addEventListener("click", () => {
-    profilePopup.classList.remove("show");
-});
 
 // File selection
 scanFileInput.addEventListener('change', function(e) {
