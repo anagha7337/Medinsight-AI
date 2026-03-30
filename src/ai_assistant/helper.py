@@ -1,6 +1,5 @@
 from langchain_community.document_loaders import PyPDFLoader, DirectoryLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain_community.embeddings import HuggingFaceInferenceAPIEmbeddings
 import os
 
 # Extract data from PDF File
@@ -17,10 +16,32 @@ def text_split(extracted_data):
     text_chunks = text_splitter.split_documents(extracted_data)
     return text_chunks
 
-# Download embeddings from HuggingFace Inference API (no local model, no RAM issues)
+# Download embeddings
 def download_hugging_face_embeddings():
-    embeddings = HuggingFaceInferenceAPIEmbeddings(
-        api_key=os.getenv("HUGGINGFACEHUB_API_TOKEN"),
-        model_name="sentence-transformers/all-MiniLM-L6-v2"
-    )
-    return embeddings
+    from huggingface_hub import InferenceClient
+
+    class FixedHFEmbeddings:
+        def __init__(self):
+            self.client = InferenceClient(
+                token=os.getenv("HUGGINGFACEHUB_API_TOKEN")
+            )
+            self.model = "sentence-transformers/all-MiniLM-L6-v2"
+
+        def _get_vector(self, text):
+            result = self.client.feature_extraction(text, model=self.model)
+            if hasattr(result, 'tolist'):
+                result = result.tolist()
+            if isinstance(result[0], list):
+                return result[0]
+            return result
+
+        def embed_documents(self, texts):
+            return [self._get_vector(text) for text in texts]
+
+        def embed_query(self, text):
+            return self._get_vector(text)
+
+        def __call__(self, text):
+            return self._get_vector(text)
+
+    return FixedHFEmbeddings()

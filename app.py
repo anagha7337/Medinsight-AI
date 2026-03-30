@@ -678,11 +678,13 @@ def chat():
     print(f"\n💬 User: {msg}")
     try:
         response = rag_chain.invoke({"input": msg})
-        answer   = str(response["answer"])
+        answer = str(response["answer"])
         print(f"🤖 Bot: {answer[:100]}...")
         return answer
     except Exception as e:
-        print(f"❌ Chatbot Error: {e}")
+        print(f"❌ Chatbot Error: {type(e).__name__}: {e}")
+        import traceback
+        traceback.print_exc()
         return "AI service is temporarily busy. Please try again later."
 
 # ========================================
