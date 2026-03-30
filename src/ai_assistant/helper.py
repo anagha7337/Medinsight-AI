@@ -1,6 +1,7 @@
 from langchain_community.document_loaders import PyPDFLoader, DirectoryLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 import os
+import requests
 
 # Extract data from PDF File
 def load_pdf_file(data):
@@ -16,21 +17,22 @@ def text_split(extracted_data):
     text_chunks = text_splitter.split_documents(extracted_data)
     return text_chunks
 
-# Download embeddings
+# Embeddings using HuggingFace new router API
 def download_hugging_face_embeddings():
-    from huggingface_hub import InferenceClient
 
     class FixedHFEmbeddings:
         def __init__(self):
-            self.client = InferenceClient(
-                token=os.getenv("HUGGINGFACEHUB_API_TOKEN")
-            )
             self.model = "sentence-transformers/all-MiniLM-L6-v2"
+            self.token = os.getenv("HUGGINGFACEHUB_API_TOKEN")
 
         def _get_vector(self, text):
-            result = self.client.feature_extraction(text, model=self.model)
-            if hasattr(result, 'tolist'):
-                result = result.tolist()
+            response = requests.post(
+                f"https://router.huggingface.co/hf-inference/models/{self.model}/pipeline/feature-extraction",
+                headers={"Authorization": f"Bearer {self.token}"},
+                json={"inputs": text}
+            )
+            print(f"HF Status: {response.status_code}")
+            result = response.json()
             if isinstance(result[0], list):
                 return result[0]
             return result
