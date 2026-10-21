@@ -8,7 +8,7 @@ The primary goal of the project is to bridge the gap between complex medical ter
 
 ## Live Demo
 
-[Click here for live demo](medinsight-ai-0oe1.onrender.com)
+[Click here for live demo](https://medinsight-ai-0oe1.onrender.com)
 
 ---
 
